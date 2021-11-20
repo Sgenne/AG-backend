@@ -1,8 +1,13 @@
 const express = require("express");
-const { getImages, getCategories } = require("../controllers/gallery");
+const {
+  getImages,
+  getCategories,
+  getImagesByCategory,
+} = require("../controllers/gallery");
 
 const router = express.Router();
 
+router.get("/images/:category", getImagesByCategory);
 router.get("/images", getImages);
 
 router.get("/categories", getCategories);

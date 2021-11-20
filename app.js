@@ -16,12 +16,13 @@ const credentials = require("./credentials");
 const uploadImages = require("./middleware/uploadImages");
 const galleryRoutes = require("./routes/gallery");
 const adminRoutes = require("./routes/admin");
+const handleErrors = require("./middleware/handleErrors");
 
 /*
 TODO
 ========
-* Fetch images by category
 * Handle next(error)
+  * Make try catch more local
 */
 
 const app = express();
@@ -33,6 +34,7 @@ app.use("/upload-image", uploadImages);
 
 app.use(galleryRoutes);
 app.use(adminRoutes);
+app.use(handleErrors);
 
 mongoose
   .connect(

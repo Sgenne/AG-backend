@@ -3,16 +3,6 @@ const express = require("express");
 
 const Image = require("../models/image");
 
-/*
-TODO
-======
-
-* Create router
-  * Chains uploadImage with updateDB
-* updateDB should create new image model instance and upload to mongo.
-  * throws error if no image was uploaded.
-*/
-
 
 const _storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, "images/"),
