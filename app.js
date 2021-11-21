@@ -1,10 +1,19 @@
 /*
 TODO
-=====
-  *CLEANUP
-
-  * Create categories
-  * Fetch categories and fetch images from a given category
+========
+  * blog
+    * Model
+      * title
+      * timestamp
+      * category
+      * content (should eventually be html)
+    * endpoints
+      * get posts
+      * get post by id
+      * get post by category
+      * get all categories
+      * create category
+      * create post     
 */
 
 const path = require("path");
@@ -17,13 +26,6 @@ const uploadImages = require("./middleware/uploadImages");
 const galleryRoutes = require("./routes/gallery");
 const adminRoutes = require("./routes/admin");
 const handleErrors = require("./middleware/handleErrors");
-
-/*
-TODO
-========
-* Handle next(error)
-  * Make try catch more local
-*/
 
 const app = express();
 

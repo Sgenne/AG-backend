@@ -11,10 +11,9 @@ exports.getImages = async (req, res, next) => {
       })
     );
   } catch (err) {
-    res.json("error in getImages", error);
-    res
-      .status(500)
-      .json(JSON.stringify({ message: "something went wrong..." }));
+    const error = new Error("Something went wrong while fetching images.");
+    error.statusCode = 500;
+    return next(error);
   }
 };
 
@@ -23,38 +22,33 @@ exports.getImagesByCategory = async (req, res, next) => {
 
   try {
     const categoryImages = await Image.find({
-      category: "animals",
+      category: category,
     });
-    console.log("fetched images: ", categoryImages);
-    res.status(200).json(
-      JSON.stringify({
-        message: "Successfully fetched images.",
-        images: categoryImages,
-      })
-    );
-  } catch (error) {
-    res.status(500).json(
-      JSON.stringify({
-        errorMessage: "Could not fetch images.",
-      })
-    );
+  } catch (err) {
+    const error = new Error("Something went wrong while fetching images.");
+    error.statusCode = 500;
+    return next(error);
   }
+  res.status(200).json(
+    JSON.stringify({
+      message: "Successfully fetched images.",
+      images: categoryImages,
+    })
+  );
 };
 
 exports.getCategories = async (req, res, next) => {
   try {
     const categories = await Category.find();
-    res.status(200).json(
-      JSON.stringify({
-        message: "Categories fetched successfully.",
-        categories: categories,
-      })
-    );
-  } catch (error) {
-    res.status(500).json(
-      JSON.stringify({
-        errorMessage: "An error occurred while fetching categories.",
-      })
-    );
+  } catch (err) {
+    const error = new Error("Something went wrong while fetching categories.");
+    error.statusCode = 500;
+    return next(error);
   }
+  res.status(200).json(
+    JSON.stringify({
+      message: "Categories fetched successfully.",
+      categories: categories,
+    })
+  );
 };
