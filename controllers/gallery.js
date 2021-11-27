@@ -1,5 +1,5 @@
 const Image = require("../models/image");
-const Category = require("../models/category");
+const ImageCategory = require("../models/imageCategory");
 
 exports.getImages = async (req, res, next) => {
   try {
@@ -38,8 +38,10 @@ exports.getImagesByCategory = async (req, res, next) => {
 };
 
 exports.getCategories = async (req, res, next) => {
+  let categories;
   try {
-    const categories = await Category.find();
+    categories = await ImageCategory.find();
+    console.log("found categories: ", categories);
   } catch (err) {
     const error = new Error("Something went wrong while fetching categories.");
     error.statusCode = 500;
