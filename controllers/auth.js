@@ -29,17 +29,17 @@ exports.registerUser = async (req, res, next) => {
   }
 
   const salt = await bcrypt.genSalt();
-  const hashedPassword = await bcrypt.hash(password, salt);
+  const passwordHash = await bcrypt.hash(password, salt);
 
-  const token = jwt.sign({ email: email }, process.env.TOKEN_SECRET, {
+  /*const token = jwt.sign({ email: email }, process.env.TOKEN_SECRET, {
     expiresIn: "24h",
   });
+*/
 
   const user = new User({
     name: name,
     email: email,
-    passwordHash: hashedPassword,
-    authenticationToken: token,
+    passwordHash: passwordHash,
   });
 
   try {
@@ -51,10 +51,67 @@ exports.registerUser = async (req, res, next) => {
     return next(error);
   }
 
+  const token = _generateAuthenticationToken(user, process.env.TOKEN_SECRET);
+
   return res.status(201).json(
     JSON.stringify({
       message: "User created successfully.",
       user: user,
+      "access-token": token,
     })
   );
+};
+
+exports.signIn = async (req, res, next) => {
+  const email = req.body.email.toLowerCase();
+  const password = req.body.password;
+  let user;
+
+  if (!(email && password)) {
+    const error = new Error("Please provide a valid email and password.");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  try {
+    user = await User.findOne({
+      email: email,
+    });
+  } catch (e) {
+    console.trace(e);
+    const error = new Error("Something went wrong while signing in.");
+    error.statusCode = 500;
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new Error("Invalid email or password.");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
+
+  if (!passwordIsValid) {
+    const error = new Error("Invalid email or password.");
+    error.statusCode = 400;
+    return next(error);
+  }
+
+  const token = _generateToken(user, process.env.TOKEN_SECRET);
+
+  return res.status(200).json(
+    JSON.stringify({
+      message: "Signed in successfully.",
+      user: user,
+      "access-token": token,
+    })
+  );
+};
+
+const _generateToken = (user, secret) => {
+  const token = jwt.sign({ email: user.email }, secret, {
+    expiresIn: "24h",
+  });
+  return token;
 };
