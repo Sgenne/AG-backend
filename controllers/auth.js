@@ -31,11 +31,6 @@ exports.registerUser = async (req, res, next) => {
   const salt = await bcrypt.genSalt();
   const passwordHash = await bcrypt.hash(password, salt);
 
-  /*const token = jwt.sign({ email: email }, process.env.TOKEN_SECRET, {
-    expiresIn: "24h",
-  });
-*/
-
   const user = new User({
     name: name,
     email: email,
@@ -51,7 +46,7 @@ exports.registerUser = async (req, res, next) => {
     return next(error);
   }
 
-  const token = _generateAuthenticationToken(user, process.env.TOKEN_SECRET);
+  const token = _generateToken(user, process.env.TOKEN_SECRET);
 
   return res.status(201).json(
     JSON.stringify({
@@ -111,7 +106,7 @@ exports.signIn = async (req, res, next) => {
 
 const _generateToken = (user, secret) => {
   const token = jwt.sign({ email: user.email }, secret, {
-    expiresIn: "24h",
+    expiresIn: "1h",
   });
   return token;
 };

@@ -2,9 +2,9 @@ const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
 
-exports.authenticateUser = (req, res, next) => {
+exports.authenticateUser = async (req, res, next) => {
   const accessToken = req.body["access-token"];
-  const userId = req.body.userId;
+  const userId = req.body["user-id"];
   let user;
 
   if (!(userId && accessToken)) {
@@ -18,9 +18,9 @@ exports.authenticateUser = (req, res, next) => {
       _id: userId,
     });
   } catch (e) {
-    console.trace(e);
     const error = new Error("Invalid user-id.");
     error.statusCode = 500;
+    return next(error);
   }
 
   jwt.verify(accessToken, process.env.TOKEN_SECRET, (err) => {
