@@ -1,5 +1,7 @@
 const Image = require("../models/image");
 const ImageCategory = require("../models/imageCategory");
+const scrollingImage = require("../models/scrollingImage");
+const ScrollingImage = require("../models/scrollingImage");
 
 exports.getImages = async (req, res, next) => {
   try {
