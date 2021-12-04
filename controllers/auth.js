@@ -58,7 +58,7 @@ exports.registerUser = async (req, res, next) => {
 };
 
 exports.signIn = async (req, res, next) => {
-  const email = req.body.email.toLowerCase();
+  const email = req.body.email;
   const password = req.body.password;
   let user;
 
@@ -70,7 +70,7 @@ exports.signIn = async (req, res, next) => {
 
   try {
     user = await User.findOne({
-      email: email,
+      email: email.toLowerCase(),
     });
   } catch (e) {
     console.trace(e);

@@ -1,5 +1,6 @@
 const multer = require("multer");
 const express = require("express");
+const sharp = require("sharp");
 
 const Image = require("../models/image");
 
@@ -35,7 +36,7 @@ const _updateDB = async (req, res, next) => {
   }
 
   const title = req.file.filename;
-  const imageUrl = `localhost:8080/bilder/${req.file.filename}`;
+  const imageUrl = `localhost:8080/images/${req.file.filename}`;
   const description = req.body.description;
   const category = req.body.category;
 
