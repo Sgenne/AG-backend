@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const util = require("util");
 
 const sharp = require("sharp");
 
@@ -7,6 +8,8 @@ const BlogCategory = require("../models/blogCategory");
 const ImageCategory = require("../models/imageCategory");
 const BlogPost = require("../models/blogPost");
 const Image = require("../models/image");
+
+const ROOT_FOLDER = path.dirname(require.main.filename);
 
 exports.createImageCategory = async (req, res, next) => {
   const categoryTitle = req.body.categoryTitle;
@@ -190,10 +193,7 @@ exports.handleUploadedImage = async (req, res, next) => {
 
     const imagePath = path.join("images", "gallery", req.file.originalname);
 
-    fs.writeFileSync(
-      path.join(path.dirname(require.main.filename), imagePath),
-      req.file.buffer
-    );
+    fs.writeFileSync(path.join(ROOT_FOLDER, imagePath), req.file.buffer);
 
     const image = new Image({
       imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${imagePath}}`,
@@ -201,16 +201,24 @@ exports.handleUploadedImage = async (req, res, next) => {
       category: category,
     });
 
-    await image.save();
+    try {
+      await image.save();
+    } catch (err) {
+      await Promise.all([
+        util.promisify(fs.unlink)(path.join(ROOT_FOLDER, imagePath)),
+        util.promisify(fs.unlink)(path.join(ROOT_FOLDER, compressedImagePath)),
+      ]);
+      const error = new Error("Could not update database.");
+      error.statusCode = 500;
+      throw error;
+    }
 
-    res
-      .status(200)
-      .json(
-        JSON.stringify({
-          message: "Image uploaded successfully.",
-          image: image,
-        })
-      );
+    res.status(200).json(
+      JSON.stringify({
+        message: "Image uploaded successfully.",
+        image: image,
+      })
+    );
   } catch (error) {
     if (!error.statusCode) {
       console.trace(error);
