@@ -80,6 +80,7 @@ exports.signIn = async (req, res, next) => {
   }
 
   if (!user) {
+    console.trace("invalid email")
     const error = new Error("Invalid email or password.");
     error.statusCode = 400;
     return next(error);
@@ -88,6 +89,7 @@ exports.signIn = async (req, res, next) => {
   const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordIsValid) {
+    console.trace("invalid password")
     const error = new Error("Invalid email or password.");
     error.statusCode = 400;
     return next(error);

@@ -19,9 +19,8 @@ const handleErrors = require("./middleware/handleErrors");
 const app = express();
 
 app.use(express.json());
-app.use("/images", express.static(path.join(__dirname, "images")));
 
-app.use("/upload-image", authMiddleware.authenticateUser, uploadImages);
+app.use("/images", express.static(path.join(__dirname, "images")));
 
 app.use("/gallery", galleryRoutes);
 app.use("/blog", blogRoutes);

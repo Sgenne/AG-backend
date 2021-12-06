@@ -1,70 +1,77 @@
+const fs = require("fs");
+const path = require("path");
+
 const multer = require("multer");
 const express = require("express");
 const sharp = require("sharp");
 
 const Image = require("../models/image");
 
-const _storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, "images/"),
-  filename: (req, file, cb) =>
-    cb(null, Math.random().toFixed(4) + file.originalname),
-});
+// loads image to req.file.buffer;
+const uploadImage = multer().single("image");
 
-const _fileFilter = (req, file, cb) => {
-  if (file.mimetype === "image/jpg" || file.mimetype === "image/jpeg") {
-    cb(null, true);
-  } else {
-    cb(null, false);
-  }
-};
-
-const _uploadImage = multer({
-  storage: _storage,
-  fileFilter: _fileFilter,
-}).single("image");
-
-const _updateDB = async (req, res, next) => {
-  if (!req.body.category) {
-    const error = new Error("No image category was given."); // should also delete image
-    error.statusCode = 400;
-    return next(error);
-  }
-  if (!req.file) {
-    const error = new Error("No file was uploaded.");
-    error.statusCode = 400;
-    return next(error);
-  }
-
-  const title = req.file.filename;
-  const imageUrl = `localhost:8080/images/${req.file.filename}`;
-  const description = req.body.description;
-  const category = req.body.category;
-
-  const image = new Image({
-    title: title,
-    imageUrl: imageUrl,
-    description: description,
-    category: category,
-  });
-
+// verifies image, adds compressed version, and stores to file system and database
+const handleUploadedImage = async (req, res, next) => {
   try {
+    const category = req.body.category;
+
+    if (!req.file) {
+      const error = new Error("No image was provided.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!category) {
+      const error = new Error("No category was provided");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (
+      !(req.file.mimetype === "image/jpg" || req.file.mimetype === "image/jpeg")
+    ) {
+      const error = new Error("Invalid image format.");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const compressedImageName = "comp" + req.file.originalname;
+    const compressedImagePath = `images/compressed/${compressedImageName}`;
+
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat("jpg")
+      .toFile(compressedImagePath);
+
+    const imagePath = path.join("images", "gallery", req.file.originalname);
+
+    fs.writeFileSync(
+      path.join(path.dirname(require.main.filename), imagePath),
+      req.file.buffer
+    );
+
+    const image = new Image({
+      imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${imagePath}}`,
+      compressedImageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${compressedImagePath}`,
+      category: category,
+    });
+
     await image.save();
-  } catch (err) {
-    const error = new Error("Error while updating database.");
-    error.statusCode = 500;
+
+    res
+      .status(200)
+      .json(JSON.stringify({ message: "Image uploaded successfully." }));
+  } catch (error) {
+    if (!error.statusCode) {
+      console.trace(error);
+      error = new Error("Could not upload file.");
+      error.statusCode = 500;
+    }
     return next(error);
   }
-  
-  res.json(
-    JSON.stringify({
-      message: "Image uploaded successfully!",
-      image: image,
-    })
-  );
 };
-
 const router = express.Router();
 
-router.use(_uploadImage, _updateDB);
+router.use(uploadImage, handleUploadedImage);
 
 module.exports = router;
