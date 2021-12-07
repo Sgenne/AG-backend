@@ -14,7 +14,7 @@ const adminRoutes = require("./routes/admin");
 const blogRoutes = require("./routes/blog");
 const authRoutes = require("./routes/auth");
 
-const handleErrors = require("./middleware/handleErrors");
+const errors = require("./middleware/handleErrors");
 
 const app = express();
 
@@ -27,7 +27,8 @@ app.use("/blog", blogRoutes);
 app.use("/admin", authMiddleware.authenticateUser, adminRoutes);
 app.use("/auth", authRoutes);
 
-app.use(handleErrors);
+app.use(errors.handle404);
+app.use(errors.handleErrors);
 
 mongoose.connect(process.env.DB_URI).then(() => {
   app.listen(process.env.PORT);

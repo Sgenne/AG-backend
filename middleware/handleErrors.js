@@ -1,4 +1,4 @@
-const handleErrors = (error, req, res, next) => {
+exports.handleErrors = (error, req, res, next) => {
   const message = error.message;
   const statusCode = error.statusCode ? error.statusCode : 500;
   res.status(statusCode).json(
@@ -8,4 +8,8 @@ const handleErrors = (error, req, res, next) => {
   );
 };
 
-module.exports = handleErrors;
+exports.handle404 = (req, res, next) => {
+  res.status(404).json({
+    message: "Invalid URL."
+  });
+}
