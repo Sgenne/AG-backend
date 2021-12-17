@@ -8,8 +8,10 @@ const BlogCategory = require("../models/blogCategory");
 const ImageCategory = require("../models/imageCategory");
 const BlogPost = require("../models/blogPost");
 const Image = require("../models/image");
+const ScrollingImage = require("../models/scrollingImage");
 
 const ROOT_FOLDER = path.dirname(require.main.filename);
+
 
 exports.createImageCategory = async (req, res, next) => {
   const categoryTitle = req.body.categoryTitle;
@@ -84,7 +86,7 @@ exports.createBlogPost = async (req, res, next) => {
     JSON.stringify({
       message: "Blog post created successfully.",
       "created-post": blogPost,
-    })
+    })  
   );
 };
 

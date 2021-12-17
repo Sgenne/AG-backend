@@ -4,7 +4,7 @@ const path = require("path");
 
 const express = require("express");
 const mongoose = require("mongoose");
-const multer = require("multer");
+const cors = require("cors");
 
 const uploadImages = require("./middleware/uploadImages");
 const authMiddleware = require("./middleware/auth");
@@ -17,6 +17,8 @@ const authRoutes = require("./routes/auth");
 const errors = require("./middleware/handleErrors");
 
 const app = express();
+
+app.use(cors());
 
 app.use(express.json());
 

@@ -21,9 +21,9 @@ exports.getImages = async (req, res, next) => {
 
 exports.getImagesByCategory = async (req, res, next) => {
   const category = req.params.category;
-
+  let categoryImages;
   try {
-    const categoryImages = await Image.find({
+    categoryImages = await Image.find({
       category: category,
     });
   } catch (err) {
@@ -42,8 +42,7 @@ exports.getImagesByCategory = async (req, res, next) => {
 exports.getCategories = async (req, res, next) => {
   let categories;
   try {
-    categories = await ImageCategory.find();
-    console.log("found categories: ", categories);
+    categories = await ImageCategory.find().populate("previewImage");
   } catch (err) {
     const error = new Error("Something went wrong while fetching categories.");
     error.statusCode = 500;
@@ -55,4 +54,22 @@ exports.getCategories = async (req, res, next) => {
       categories: categories,
     })
   );
+};
+
+exports.getScrollingImages = async (req, res, next) => {
+  try {
+    const scrollingImages = await ScrollingImage.find().populate("image");
+    res.status(200).json(
+      JSON.stringify({
+        message: "Successfully fetched scrolling images.",
+        scrollingImages: scrollingImages,
+      })
+    );
+  } catch (error) {
+    if (!error.statusCode) {
+      error = new Error("Could not fetch scrolling images.");
+      error.statusCode = 500;
+    }
+    return next(error);
+  }
 };

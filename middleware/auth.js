@@ -8,13 +8,11 @@ exports.authenticateUser = async (req, res, next) => {
   let user;
 
   if (!(userId && accessToken)) {
-    console.log("user-id: ", userId);
-    console.log("access-token: ", accessToken);
     const error = new Error(
       `Please provide a valid user-id and access token. 
       Provide the user-id under header "userId", and the access-token under header "Authorization" as "Bearer: <token>".`
     );
-    error.statusCode = 400;
+    error.statusCode = 401;
     return next(error);
   }
 

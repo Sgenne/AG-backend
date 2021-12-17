@@ -2,15 +2,36 @@ const blogCategory = require("../models/blogCategory");
 const BlogPost = require("../models/blogPost");
 const Image = require("../models/image");
 
-// get all blog posts
+// get latest blog posts
 exports.getBlogPosts = async (req, res, next) => {
+
+  // will contain all months in which there are posts
+  const availableMonths = []; 
+
+  // number of posts to return (returns all if none has been specified)
+  const numberOfPosts = req.query["numberOfPosts"];
   let blogPosts;
+
   try {
     blogPosts = await BlogPost.find();
   } catch (e) {
     const error = new Error("Could not fetch blog posts.");
     error.statusCode = 500;
     return next(error);
+  }
+
+  // iterate over blogPosts and collect all months
+  blogPosts.forEach((post) => {
+    const month = new Date(post.createdAt).getMonth();
+
+    if (!availableMonths.includes(month)) {
+      availableMonths.push(month);
+    }
+  });
+
+  // limits number of returned posts if numberOfPosts has been set
+  if (numberOfPosts) {
+    blogPosts = blogPOsts.slice(0, numberOfPosts);
   }
 
   res.status(200).json(
@@ -28,7 +49,7 @@ exports.getBlogPostsByCategory = async (req, res, next) => {
 
   try {
     blogPosts = await BlogPost.find({
-      category: { $regex: new RegExp(category, "i")}, // case-insensitive query for posts with given category
+      category: { $regex: new RegExp(category, "i") }, // case-insensitive query for posts with given category
     });
   } catch (e) {
     const error = new Error("Could not fetch blog posts.");
@@ -83,4 +104,3 @@ exports.getCategories = async (req, res, next) => {
     })
   );
 };
-

@@ -1,15 +1,13 @@
 const express = require("express");
-const {
-  getImages,
-  getCategories,
-  getImagesByCategory,
-} = require("../controllers/gallery");
+const galleryController = require("../controllers/gallery");
 
 const router = express.Router();
 
-router.get("/images/:category", getImagesByCategory);
-router.get("/images", getImages);
+router.get("/images/:category", galleryController.getImagesByCategory);
+router.get("/images", galleryController.getImages);
 
-router.get("/categories", getCategories);
+router.get("/categories", galleryController.getCategories);
+
+router.get("/scrolling-images", galleryController.getScrollingImages);
 
 module.exports = router;
