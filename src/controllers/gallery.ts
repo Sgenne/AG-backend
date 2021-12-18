@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
 
-import Image from "../models/image";
-import ImageCategory from "../models/imageCategory";
-import ScrollingImage from "../models/scrollingImage";
+import { Image } from "../models/image";
+import { ImageCategory } from "../models/imageCategory";
+import { ScrollingImage } from "../models/scrollingImage";
 
-exports.getImages = async (req: Request, res: Response, next: Function) => {
+export const getImages = async (req: Request, res: Response, next: Function) => {
   try {
     const images = await Image.find();
     res.json(
@@ -20,7 +20,7 @@ exports.getImages = async (req: Request, res: Response, next: Function) => {
   }
 };
 
-exports.getImagesByCategory = async (
+export const getImagesByCategory = async (
   req: Request,
   res: Response,
   next: Function
@@ -44,7 +44,7 @@ exports.getImagesByCategory = async (
   );
 };
 
-exports.getCategories = async (req: Request, res: Response, next: Function) => {
+export const getCategories = async (req: Request, res: Response, next: Function) => {
   let categories;
   try {
     categories = await ImageCategory.find().populate("previewImage");
@@ -61,7 +61,7 @@ exports.getCategories = async (req: Request, res: Response, next: Function) => {
   );
 };
 
-exports.getScrollingImages = async (
+export const getScrollingImages = async (
   req: Request,
   res: Response,
   next: Function

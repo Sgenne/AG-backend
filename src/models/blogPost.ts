@@ -3,6 +3,7 @@ import { Schema, model } from "mongoose";
 interface IBlogPost {
   title: string;
   content: string;
+  createdAt: Date;
 }
 
 const blogPostSchema = new Schema(

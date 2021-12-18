@@ -25,5 +25,6 @@ yarn-error.log*
 
 credentials.js
 /images
+/dist
 
 .vscode

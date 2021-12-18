@@ -5,11 +5,11 @@ import util from "util";
 import { Request, Response } from "express";
 import sharp from "sharp";
 
-import BlogCategory from "../models/blogCategory";
-import ImageCategory from "../models/imageCategory";
-import BlogPost from "../models/blogPost";
-import Image from "../models/image";
-import ScrollingImage from "../models/scrollingImage";
+import { BlogCategory } from "../models/blogCategory";
+import { ImageCategory } from "../models/imageCategory";
+import { BlogPost } from "../models/blogPost";
+import { Image } from "../models/image";
+import { ScrollingImage } from "../models/scrollingImage";
 
 const ROOT_FOLDER = path.join(__dirname, "../");
 

@@ -4,7 +4,11 @@ import { BlogCategory } from "../models/blogCategory";
 import { BlogPost } from "../models/blogPost";
 
 // get latest blog posts
-exports.getBlogPosts = async (req: Request, res: Response, next: Function) => {
+export const getBlogPosts = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   // will contain all months in which there are posts
   const availableMonths: number[] = [];
 
@@ -48,7 +52,7 @@ exports.getBlogPosts = async (req: Request, res: Response, next: Function) => {
 };
 
 // get all blog posts from a given category
-exports.getBlogPostsByCategory = async (
+export const getBlogPostsByCategory = async (
   req: Request,
   res: Response,
   next: Function
@@ -75,7 +79,11 @@ exports.getBlogPostsByCategory = async (
 };
 
 // get blog post with a given id
-exports.getBlogPost = async (req: Request, res: Response, next: Function) => {
+export const getBlogPost = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const blogPostId = req.params.id;
   let blogPost;
 
@@ -96,13 +104,16 @@ exports.getBlogPost = async (req: Request, res: Response, next: Function) => {
 };
 
 // get all blog categories
-exports.getCategories = async (req: Request, res: Response, next: Function) => {
+export const getCategories = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   let categories;
   try {
-    categories = await blogCategory.find();
+    categories = await BlogCategory.find();
   } catch (e) {
     const error = new Error("Could not fetch blog categories.");
-    const statusCode = 500;
     return next(error);
   }
 
