@@ -1,9 +1,10 @@
-const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
+import { Response, Request } from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
-const User = require("../models/user");
+import { User } from "../models/user";
 
-exports.registerUser = async (req, res, next) => {
+const registerUser = async (req: Request, res: Response, next: Function) => {
   const name = req.body.name;
   const email = req.body.email.toLowerCase();
   const password = req.body.password;
@@ -12,7 +13,7 @@ exports.registerUser = async (req, res, next) => {
     const error = new Error(
       "Please provide a valid name, email, and password."
     );
-    error.statusCode = 400;
+    res.status(400);
     return next(error);
   }
 
@@ -24,7 +25,13 @@ exports.registerUser = async (req, res, next) => {
     const error = new Error(
       "A user with that email already exists. Please choose another email."
     );
-    error.statusCode = 400;
+    res.status(400);
+    return next(error);
+  }
+
+  if (!process.env.TOKEN_SECRET) {
+    const error = new Error("Could not generate access token");
+    res.status(500);
     return next(error);
   }
 
@@ -42,7 +49,7 @@ exports.registerUser = async (req, res, next) => {
   } catch (e) {
     console.trace(e);
     const error = new Error("Something went wrong while creating user.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 
@@ -57,14 +64,14 @@ exports.registerUser = async (req, res, next) => {
   );
 };
 
-exports.signIn = async (req, res, next) => {
+const signIn = async (req: Request, res: Response, next: Function) => {
   const email = req.body.email;
   const password = req.body.password;
   let user;
 
   if (!(email && password)) {
     const error = new Error("Please provide a valid email and password.");
-    error.statusCode = 400;
+    res.status(400);
     return next(error);
   }
 
@@ -75,23 +82,29 @@ exports.signIn = async (req, res, next) => {
   } catch (e) {
     console.trace(e);
     const error = new Error("Something went wrong while signing in.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 
   if (!user) {
-    console.trace("invalid email")
+    console.trace("invalid email");
     const error = new Error("Invalid email or password.");
-    error.statusCode = 400;
+    res.status(400);
     return next(error);
   }
 
   const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordIsValid) {
-    console.trace("invalid password")
+    console.trace("invalid password");
     const error = new Error("Invalid email or password.");
-    error.statusCode = 400;
+    res.status(400);
+    return next(error);
+  }
+
+  if (!process.env.TOKEN_SECRET) {
+    const error = new Error("Could not generate access token.");
+    res.status(500);
     return next(error);
   }
 
@@ -106,9 +119,14 @@ exports.signIn = async (req, res, next) => {
   );
 };
 
-const _generateToken = (user, secret) => {
+const _generateToken = (user: { email: string }, secret: string) => {
   const token = jwt.sign({ email: user.email }, secret, {
     expiresIn: "1h",
   });
   return token;
+};
+
+export default {
+  registerUser,
+  signIn,
 };

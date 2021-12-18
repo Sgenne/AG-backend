@@ -1,9 +1,10 @@
-const Image = require("../models/image");
-const ImageCategory = require("../models/imageCategory");
-const scrollingImage = require("../models/scrollingImage");
-const ScrollingImage = require("../models/scrollingImage");
+import { Request, Response } from "express";
 
-exports.getImages = async (req, res, next) => {
+import Image from "../models/image";
+import ImageCategory from "../models/imageCategory";
+import ScrollingImage from "../models/scrollingImage";
+
+exports.getImages = async (req: Request, res: Response, next: Function) => {
   try {
     const images = await Image.find();
     res.json(
@@ -14,12 +15,16 @@ exports.getImages = async (req, res, next) => {
     );
   } catch (err) {
     const error = new Error("Something went wrong while fetching images.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 };
 
-exports.getImagesByCategory = async (req, res, next) => {
+exports.getImagesByCategory = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const category = req.params.category;
   let categoryImages;
   try {
@@ -28,7 +33,7 @@ exports.getImagesByCategory = async (req, res, next) => {
     });
   } catch (err) {
     const error = new Error("Something went wrong while fetching images.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
   res.status(200).json(
@@ -39,13 +44,13 @@ exports.getImagesByCategory = async (req, res, next) => {
   );
 };
 
-exports.getCategories = async (req, res, next) => {
+exports.getCategories = async (req: Request, res: Response, next: Function) => {
   let categories;
   try {
     categories = await ImageCategory.find().populate("previewImage");
   } catch (err) {
     const error = new Error("Something went wrong while fetching categories.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
   res.status(200).json(
@@ -56,7 +61,11 @@ exports.getCategories = async (req, res, next) => {
   );
 };
 
-exports.getScrollingImages = async (req, res, next) => {
+exports.getScrollingImages = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   try {
     const scrollingImages = await ScrollingImage.find().populate("image");
     res.status(200).json(
@@ -66,10 +75,8 @@ exports.getScrollingImages = async (req, res, next) => {
       })
     );
   } catch (error) {
-    if (!error.statusCode) {
-      error = new Error("Could not fetch scrolling images.");
-      error.statusCode = 500;
-    }
+    error = new Error("Could not fetch scrolling images.");
+    res.status(500);
     return next(error);
   }
 };

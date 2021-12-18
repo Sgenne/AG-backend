@@ -1,6 +1,10 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
 
-const Schema = mongoose.Schema;
+export interface IImage {
+  imageUrl: string;
+  compressedImageUrl: string;
+  category: string;
+}
 
 const imageSchema = new Schema(
   {
@@ -22,4 +26,4 @@ const imageSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("Image", imageSchema);
+export const Image = model<IImage>("Image", imageSchema);

@@ -1,7 +1,7 @@
-const express = require("express");
-const galleryController = require("../controllers/gallery");
+import { Router } from "express";
+import galleryController from "../controllers/gallery";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/images/:category", galleryController.getImagesByCategory);
 router.get("/images", galleryController.getImages);
@@ -10,4 +10,4 @@ router.get("/categories", galleryController.getCategories);
 
 router.get("/scrolling-images", galleryController.getScrollingImages);
 
-module.exports = router;
+export default router;

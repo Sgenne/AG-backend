@@ -1,5 +1,9 @@
-const mongoose = require("mongoose");
-const Schema = mongoose.Schema;
+import { Schema, model } from "mongoose";
+
+interface IBlogPost {
+  title: string;
+  content: string;
+}
 
 const blogPostSchema = new Schema(
   {
@@ -15,4 +19,4 @@ const blogPostSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("BlogPost", blogPostSchema);
+export const BlogPost = model<IBlogPost>("BlogPost", blogPostSchema);

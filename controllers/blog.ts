@@ -1,22 +1,19 @@
-const blogCategory = require("../models/blogCategory");
-const BlogPost = require("../models/blogPost");
-const Image = require("../models/image");
+import { Response, Request } from "express";
+
+import { BlogCategory } from "../models/blogCategory";
+import { BlogPost } from "../models/blogPost";
 
 // get latest blog posts
-exports.getBlogPosts = async (req, res, next) => {
-
+exports.getBlogPosts = async (req: Request, res: Response, next: Function) => {
   // will contain all months in which there are posts
-  const availableMonths = []; 
+  const availableMonths: number[] = [];
 
-  // number of posts to return (returns all if none has been specified)
-  const numberOfPosts = req.query["numberOfPosts"];
   let blogPosts;
-
   try {
     blogPosts = await BlogPost.find();
   } catch (e) {
     const error = new Error("Could not fetch blog posts.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 
@@ -29,9 +26,17 @@ exports.getBlogPosts = async (req, res, next) => {
     }
   });
 
+  // number of posts to return (returns all if none has been specified)
+  let numberOfPosts = req.query["numberOfPosts"] || blogPosts.length;
+
+  // check if provided value is a not a number
+  if (isNaN(+numberOfPosts)) {
+    numberOfPosts = blogPosts.length;
+  }
+
   // limits number of returned posts if numberOfPosts has been set
   if (numberOfPosts) {
-    blogPosts = blogPOsts.slice(0, numberOfPosts);
+    blogPosts = blogPosts.slice(0, numberOfPosts as number); // can safely cast because of previous check
   }
 
   res.status(200).json(
@@ -43,7 +48,11 @@ exports.getBlogPosts = async (req, res, next) => {
 };
 
 // get all blog posts from a given category
-exports.getBlogPostsByCategory = async (req, res, next) => {
+exports.getBlogPostsByCategory = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
   const category = req.params.category;
   let blogPosts;
 
@@ -53,7 +62,7 @@ exports.getBlogPostsByCategory = async (req, res, next) => {
     });
   } catch (e) {
     const error = new Error("Could not fetch blog posts.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 
@@ -66,7 +75,7 @@ exports.getBlogPostsByCategory = async (req, res, next) => {
 };
 
 // get blog post with a given id
-exports.getBlogPost = async (req, res, next) => {
+exports.getBlogPost = async (req: Request, res: Response, next: Function) => {
   const blogPostId = req.params.id;
   let blogPost;
 
@@ -74,7 +83,7 @@ exports.getBlogPost = async (req, res, next) => {
     blogPost = await BlogPost.findById(blogPostId);
   } catch (e) {
     const error = new Error("Could not fetch blog post.");
-    error.statusCode = 500;
+    res.status(500);
     return next(error);
   }
 
@@ -87,7 +96,7 @@ exports.getBlogPost = async (req, res, next) => {
 };
 
 // get all blog categories
-exports.getCategories = async (req, res, next) => {
+exports.getCategories = async (req: Request, res: Response, next: Function) => {
   let categories;
   try {
     categories = await blogCategory.find();

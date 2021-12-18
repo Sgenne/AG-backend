@@ -1,9 +1,9 @@
-const express = require("express");
-const multer = require("multer");
+import { Router } from "express";
+import multer from "multer";
 
-const adminController = require("../controllers/admin");
+import adminController from "../controllers/admin";
 
-const router = express.Router();
+const router: Router = Router();
 
 router.post("/new-image-category", adminController.createImageCategory);
 router.post(
@@ -18,4 +18,4 @@ router.post("/new-blog-post", adminController.createBlogPost);
 router.post("/new-scrolling-image", adminController.addScrollingImage);
 router.delete("/delete-scrolling-image", adminController.deleteScrollingImage);
 
-module.exports = router;
+export default router;

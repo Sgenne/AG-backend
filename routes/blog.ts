@@ -1,12 +1,14 @@
-const express = require("express");
+import { Router } from "express";
 
-const blogController = require("../controllers/blog");
+import blogController from "../controllers/blog";
 
-const router = express.Router();
+const router = Router();
 
 router.get("/post/:id", blogController.getBlogPost);
 router.get("/category/:category", blogController.getBlogPostsByCategory);
 router.get("/categories", blogController.getCategories);
 router.get("", blogController.getBlogPosts);
+
+export default router;
 
 module.exports = router;
