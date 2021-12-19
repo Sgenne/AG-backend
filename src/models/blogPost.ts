@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 
-interface IBlogPost {
+export interface IBlogPost {
   title: string;
   content: string;
   createdAt: Date;

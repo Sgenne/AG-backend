@@ -29,7 +29,7 @@ export const getImagesByCategory = async (
   let categoryImages;
   try {
     categoryImages = await Image.find({
-      category: category,
+      category: category.toLowerCase(),
     });
   } catch (err) {
     const error = new Error("Something went wrong while fetching images.");

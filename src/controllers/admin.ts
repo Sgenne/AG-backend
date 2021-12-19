@@ -220,7 +220,7 @@ const handleUploadedImage = async (
   const image = new Image({
     imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`,
     compressedImageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`,
-    category: category,
+    category: category.toLowerCase(),
   });
 
   try {
