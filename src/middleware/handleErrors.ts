@@ -6,7 +6,13 @@ export const handleErrors = (
   res: Response,
   next: Function
 ) => {
-  const message = error.message;
+  let message = error.message;
+
+  if (!res.statusCode) {
+    res.status(500);
+    message = "Something went wrong.";
+  }
+
   res.json({
     message: message,
   });

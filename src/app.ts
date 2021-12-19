@@ -18,12 +18,11 @@ import { handle404, handleErrors } from "./middleware/handleErrors";
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 
 app.use(express.json());
 
-app.use("/images", express.static(path.join(__dirname, "images")));
+app.use("/images", express.static(path.join(__dirname, "../", "images")));
 
 app.use("/gallery", galleryRoutes);
 app.use("/blog", blogRoutes);

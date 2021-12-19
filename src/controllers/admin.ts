@@ -11,7 +11,9 @@ import { BlogPost } from "../models/blogPost";
 import { Image } from "../models/image";
 import { ScrollingImage } from "../models/scrollingImage";
 
-const ROOT_FOLDER = path.join(__dirname, "../");
+const _ROOT_FOLDER_PATH = path.join(__dirname, "../../");
+const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
+const _COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
 
 const createImageCategory = async (
   req: Request,
@@ -188,21 +190,36 @@ const handleUploadedImage = async (
     return next(error);
   }
 
-  const compressedImageName = "comp" + req.file.originalname;
-  const compressedImagePath = `images/compressed/${compressedImageName}`;
+  const originalName = req.file.originalname;
+  const compressedImageName = "(compressed)" + originalName;
+  const compressedImagePath = path.join(
+    _ROOT_FOLDER_PATH,
+    _COMPRESSED_IMAGE_FOLDER_PATH,
+    compressedImageName
+  );
+  const imagePath = path.join(
+    _ROOT_FOLDER_PATH,
+    _GALLERY_IMAGE_FOLDER_PATH,
+    originalName
+  );
 
-  await sharp(req.file.buffer)
-    .resize(600, 600)
-    .toFormat("jpg")
-    .toFile(compressedImagePath);
+  try {
+    await sharp(req.file.buffer)
+      .resize(600, 600)
+      .toFormat("jpg")
+      .toFile(compressedImagePath);
 
-  const imagePath = path.join("images", "gallery", req.file.originalname);
-
-  fs.writeFileSync(path.join(ROOT_FOLDER, imagePath), req.file.buffer);
+    fs.writeFileSync(imagePath, req.file.buffer);
+  } catch (err) {
+    console.log(err);
+    const error = new Error("Could not upload image.");
+    res.status(500);
+    return next(error);
+  }
 
   const image = new Image({
-    imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${imagePath}}`,
-    compressedImageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${compressedImagePath}`,
+    imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`,
+    compressedImageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`,
     category: category,
   });
 
@@ -210,8 +227,10 @@ const handleUploadedImage = async (
     await image.save();
   } catch (err) {
     await Promise.all([
-      util.promisify(fs.unlink)(path.join(ROOT_FOLDER, imagePath)),
-      util.promisify(fs.unlink)(path.join(ROOT_FOLDER, compressedImagePath)),
+      util.promisify(fs.unlink)(path.join(_ROOT_FOLDER_PATH, imagePath)),
+      util.promisify(fs.unlink)(
+        path.join(_ROOT_FOLDER_PATH, compressedImagePath)
+      ),
     ]);
     const error = new Error("Could not update database.");
     res.status(500);

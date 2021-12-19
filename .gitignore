@@ -26,5 +26,6 @@ yarn-error.log*
 credentials.js
 /images
 /dist
+nodemon.json
 
 .vscode
