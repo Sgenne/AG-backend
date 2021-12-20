@@ -1,21 +1,27 @@
 import { Router } from "express";
 import multer from "multer";
 
-import adminController from "../controllers/admin";
+import {
+  createImageCategory,
+  handleUploadedImage,
+  addScrollingImage,
+  deleteScrollingImage,
+} from "../controllers/gallery/galleryAdmin";
+
+import {
+  createBlogCategory,
+  createBlogPost,
+} from "../controllers/blog/blogAdmin";
 
 const router: Router = Router();
 
-router.post("/new-image-category", adminController.createImageCategory);
-router.post(
-  "/upload-image",
-  multer().single("image"),
-  adminController.handleUploadedImage
-);
+router.post("/new-image-category", createImageCategory);
+router.post("/upload-image", multer().single("image"), handleUploadedImage);
 
-router.post("/new-blog-category", adminController.createBlogCategory);
-router.post("/new-blog-post", adminController.createBlogPost);
+router.post("/new-blog-category", createBlogCategory);
+router.post("/new-blog-post", createBlogPost);
 
-router.post("/new-scrolling-image", adminController.addScrollingImage);
-router.delete("/delete-scrolling-image", adminController.deleteScrollingImage);
+router.post("/new-scrolling-image", addScrollingImage);
+router.delete("/delete-scrolling-image", deleteScrollingImage);
 
 export default router;

@@ -1,7 +1,6 @@
 import { Response, Request } from "express";
 
-import { BlogCategory } from "../models/blogCategory";
-import { BlogPost, IBlogPost } from "../models/blogPost";
+import { BlogPost, IBlogPost } from "../../models/blogPost";
 
 const _fetchBlogPosts = async (): Promise<{
   availableMonths: number[];
@@ -109,75 +108,75 @@ export const getBlogPostsByMonth = async (
 };
 
 // get all blog posts from a given category
-export const getBlogPostsByCategory = async (
-  req: Request,
-  res: Response,
-  next: Function
-) => {
-  const category = req.params.category;
-  let blogPosts;
+// export const getBlogPostsByCategory = async (
+//   req: Request,
+//   res: Response,
+//   next: Function
+// ) => {
+//   const category = req.params.category;
+//   let blogPosts;
 
-  try {
-    blogPosts = await BlogPost.find({
-      category: { $regex: new RegExp(category, "i") }, // case-insensitive query for posts with given category
-    });
-  } catch (e) {
-    const error = new Error("Could not fetch blog posts.");
-    res.status(500);
-    return next(error);
-  }
+//   try {
+//     blogPosts = await BlogPost.find({
+//       category: { $regex: new RegExp(category, "i") }, // case-insensitive query for posts with given category
+//     });
+//   } catch (e) {
+//     const error = new Error("Could not fetch blog posts.");
+//     res.status(500);
+//     return next(error);
+//   }
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Blog posts fetched successfully.",
-      blogPosts: blogPosts,
-    })
-  );
-};
+//   res.status(200).json(
+//     JSON.stringify({
+//       message: "Blog posts fetched successfully.",
+//       blogPosts: blogPosts,
+//     })
+//   );
+// };
 
-// get blog post with a given id
-export const getBlogPost = async (
-  req: Request,
-  res: Response,
-  next: Function
-) => {
-  const blogPostId = req.params.id;
-  let blogPost;
+// // get blog post with a given id
+// export const getBlogPost = async (
+//   req: Request,
+//   res: Response,
+//   next: Function
+// ) => {
+//   const blogPostId = req.params.id;
+//   let blogPost;
 
-  try {
-    blogPost = await BlogPost.findById(blogPostId);
-  } catch (e) {
-    const error = new Error("Could not fetch blog post.");
-    res.status(500);
-    return next(error);
-  }
+//   try {
+//     blogPost = await BlogPost.findById(blogPostId);
+//   } catch (e) {
+//     const error = new Error("Could not fetch blog post.");
+//     res.status(500);
+//     return next(error);
+//   }
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Blog posts fetched successfully.",
-      blogPost: blogPost,
-    })
-  );
-};
+//   res.status(200).json(
+//     JSON.stringify({
+//       message: "Blog posts fetched successfully.",
+//       blogPost: blogPost,
+//     })
+//   );
+// };
 
 // get all blog categories
-export const getCategories = async (
-  req: Request,
-  res: Response,
-  next: Function
-) => {
-  let categories;
-  try {
-    categories = await BlogCategory.find();
-  } catch (e) {
-    const error = new Error("Could not fetch blog categories.");
-    return next(error);
-  }
+// export const getCategories = async (
+//   req: Request,
+//   res: Response,
+//   next: Function
+// ) => {
+//   let categories;
+//   try {
+//     categories = await BlogCategory.find();
+//   } catch (e) {
+//     const error = new Error("Could not fetch blog categories.");
+//     return next(error);
+//   }
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Blog categories fetched successfully.",
-      categories: categories,
-    })
-  );
-};
+//   res.status(200).json(
+//     JSON.stringify({
+//       message: "Blog categories fetched successfully.",
+//       categories: categories,
+//     })
+//   );
+// };

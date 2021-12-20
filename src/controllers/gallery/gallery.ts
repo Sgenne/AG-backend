@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 
-import { Image } from "../models/image";
-import { ImageCategory } from "../models/imageCategory";
-import { ScrollingImage } from "../models/scrollingImage";
+import { Image } from "../../models/image";
+import { ImageCategory } from "../../models/imageCategory";
+import { ScrollingImage } from "../../models/scrollingImage";
 
 export const getImages = async (req: Request, res: Response, next: Function) => {
   try {

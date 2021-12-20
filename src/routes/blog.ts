@@ -1,16 +1,11 @@
 import { Router } from "express";
 
-import { getBlogPost, getBlogPostsByCategory, getCategories, getBlogPosts } from "../controllers/blog";
+import { getBlogPosts, getBlogPostsByMonth } from "../controllers/blog/blog";
 
 const router = Router();
 
 router.get("/posts", getBlogPosts);
-
-
-// router.get("/post/:id", getBlogPost);
-// router.get("/category/:category", getBlogPostsByCategory);
-// router.get("/categories", getCategories);
-// router.get("", getBlogPosts);
+router.get("/posts/:month", getBlogPostsByMonth);
 
 export default router;
 

@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getImagesByCategory, getImages, getCategories, getScrollingImages } from "../controllers/gallery";
+import {
+  getImagesByCategory,
+  getImages,
+  getCategories,
+  getScrollingImages,
+} from "../controllers/gallery/gallery";
 
 const router = Router();
 
