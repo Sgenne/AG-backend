@@ -24,17 +24,17 @@ export const authenticateUser = async (
   accessToken = accessToken.split(" ")[1];
 
   try {
-    user = await User.findOne({
-      _id: userId,
-    });
+    user = await User.findById(userId);
   } catch (e) {
-    const error = new Error("Something went wrong.");
+    const error = new Error("An error occured while finding the user.");
     res.status(500);
     return next(error);
   }
 
   if (!user) {
-    const error = new Error("Invalid user id.");
+    const error = new Error("No user with the provided user-id was found.");
+    res.status(404);
+    return next(error);
   }
 
   if (!process.env.TOKEN_SECRET) {
