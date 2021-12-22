@@ -2,30 +2,40 @@ import { Response, Request } from "express";
 
 import { BlogPost, IBlogPost } from "../../models/blogPost";
 
+interface MonthAndYear {
+  month: number;
+  year: number;
+}
+
 const _fetchBlogPosts = async (): Promise<{
-  availableMonths: number[];
+  availableMonths: MonthAndYear[];
   blogPosts: IBlogPost[];
 }> => {
   // will contain all months in which there are posts
-  const availableMonths: number[] = [];
+  const availableMonths: any = {};
 
   let blogPosts: IBlogPost[] | null;
   try {
-    blogPosts = await BlogPost.find();
+    blogPosts = await BlogPost.find().sort("-createdAt");
   } catch (e) {
     throw new Error("Could not fetch blog posts from database.");
   }
 
   // iterate over blogPosts and collect all months
   blogPosts.forEach((post) => {
-    const month = new Date(post.createdAt).getMonth();
+    const month = post.createdAt.getMonth();
+    const year = post.createdAt.getFullYear();
 
-    if (!availableMonths.includes(month)) {
-      availableMonths.push(month);
-    }
+    availableMonths[-year-month] = {
+      month: month,
+      year: year,
+    };
   });
+
+  const availableMonthsList = Object.values(availableMonths) as MonthAndYear[];
+
   return {
-    availableMonths: availableMonths,
+    availableMonths: availableMonthsList,
     blogPosts: blogPosts,
   };
 };
@@ -37,7 +47,7 @@ export const getBlogPosts = async (
   next: Function
 ) => {
   let blogPosts: IBlogPost[];
-  let availableMonths: number[];
+  let availableMonths: MonthAndYear[];
 
   try {
     const result = await _fetchBlogPosts();
@@ -75,7 +85,7 @@ export const getBlogPostsByMonth = async (
   next: Function
 ) => {
   let blogPosts: IBlogPost[];
-  let avaialbleMonts: number[];
+  let avaialbleMonts: MonthAndYear[];
 
   const month: number = +req.params.month;
 
@@ -106,77 +116,3 @@ export const getBlogPostsByMonth = async (
     availableMonths: avaialbleMonts,
   });
 };
-
-// get all blog posts from a given category
-// export const getBlogPostsByCategory = async (
-//   req: Request,
-//   res: Response,
-//   next: Function
-// ) => {
-//   const category = req.params.category;
-//   let blogPosts;
-
-//   try {
-//     blogPosts = await BlogPost.find({
-//       category: { $regex: new RegExp(category, "i") }, // case-insensitive query for posts with given category
-//     });
-//   } catch (e) {
-//     const error = new Error("Could not fetch blog posts.");
-//     res.status(500);
-//     return next(error);
-//   }
-
-//   res.status(200).json(
-//     JSON.stringify({
-//       message: "Blog posts fetched successfully.",
-//       blogPosts: blogPosts,
-//     })
-//   );
-// };
-
-// // get blog post with a given id
-// export const getBlogPost = async (
-//   req: Request,
-//   res: Response,
-//   next: Function
-// ) => {
-//   const blogPostId = req.params.id;
-//   let blogPost;
-
-//   try {
-//     blogPost = await BlogPost.findById(blogPostId);
-//   } catch (e) {
-//     const error = new Error("Could not fetch blog post.");
-//     res.status(500);
-//     return next(error);
-//   }
-
-//   res.status(200).json(
-//     JSON.stringify({
-//       message: "Blog posts fetched successfully.",
-//       blogPost: blogPost,
-//     })
-//   );
-// };
-
-// get all blog categories
-// export const getCategories = async (
-//   req: Request,
-//   res: Response,
-//   next: Function
-// ) => {
-//   let categories;
-//   try {
-//     categories = await BlogCategory.find();
-//   } catch (e) {
-//     const error = new Error("Could not fetch blog categories.");
-//     return next(error);
-//   }
-
-//   res.status(200).json(
-//     JSON.stringify({
-//       message: "Blog categories fetched successfully.",
-//       categories: categories,
-//     })
-//   );
-// };
