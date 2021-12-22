@@ -26,7 +26,7 @@ const _fetchBlogPosts = async (): Promise<{
     const month = post.createdAt.getMonth();
     const year = post.createdAt.getFullYear();
 
-    availableMonths[-year-month] = {
+    availableMonths[-year - month] = {
       month: month,
       year: year,
     };
@@ -85,9 +85,10 @@ export const getBlogPostsByMonth = async (
   next: Function
 ) => {
   let blogPosts: IBlogPost[];
-  let avaialbleMonts: MonthAndYear[];
+  let availableMonths: MonthAndYear[];
 
   const month: number = +req.params.month;
+  const year: number = +req.params.year;
 
   // check if given month is valid
   if (isNaN(month) || month < 0 || month >= 12) {
@@ -101,18 +102,22 @@ export const getBlogPostsByMonth = async (
   try {
     const result = await _fetchBlogPosts();
     blogPosts = result.blogPosts;
-    avaialbleMonts = result.availableMonths;
+    availableMonths = result.availableMonths;
   } catch (error) {
     res.status(500);
     return next(error);
   }
 
-  // remove posts that are not from the specified month
-  blogPosts = blogPosts.filter((post) => post.createdAt.getMonth() === month);
+  // remove posts that are not from the specified month and year
+  blogPosts = blogPosts.filter(
+    (post) =>
+      post.createdAt.getMonth() === month &&
+      post.createdAt.getFullYear() === year
+  );
 
-  res.status(200).json({
+  res.status(200).json(JSON.stringify({
     message: "Blog posts fetched succesfully.",
     blogPosts: blogPosts,
-    availableMonths: avaialbleMonts,
-  });
+    availableMonths: availableMonths,
+  }));
 };

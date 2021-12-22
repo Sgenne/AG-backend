@@ -5,7 +5,7 @@ import { getBlogPosts, getBlogPostsByMonth } from "../controllers/blog/blog";
 const router = Router();
 
 router.get("/posts", getBlogPosts);
-router.get("/posts/:month", getBlogPostsByMonth);
+router.get("/posts/:year/:month", getBlogPostsByMonth);
 
 export default router;
 
