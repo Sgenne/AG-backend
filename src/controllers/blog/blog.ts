@@ -49,6 +49,10 @@ export const getBlogPosts = async (
   let blogPosts: IBlogPost[];
   let availableMonths: MonthAndYear[];
 
+  // The latest allowed date of the returned posts.
+  // All returned posts will have been posted before this date
+  const latestDateParam = req.query["latestDate"];
+
   try {
     const result = await _fetchBlogPosts();
     blogPosts = result.blogPosts;
@@ -59,11 +63,38 @@ export const getBlogPosts = async (
   }
 
   // number of posts to return (returns all if none has been specified)
-  let numberOfPosts = req.query["numberOfPosts"] || blogPosts.length;
+  const numberOfPosts = req.query["numberOfPosts"] || blogPosts.length;
 
   // check if provided value is a not a number
   if (isNaN(+numberOfPosts)) {
-    numberOfPosts = blogPosts.length;
+    const error = new Error(
+      "The provided number of posts to load was invalid."
+    );
+    res.status(400);
+    return next(error);
+  }
+
+  // If latest date was provided, remove posts from after the specified date.
+  if (latestDateParam) {
+
+    
+    // check if provided latest date value is valid
+    if (
+      typeof latestDateParam !== "string" ||
+      isNaN(Date.parse(latestDateParam))
+    ) {
+      const error = new Error("The provided latest date was invalid.");
+      res.status(400);
+      return next(error);
+    }
+
+    const latestDate: number = new Date(latestDateParam).getTime();
+
+    blogPosts = blogPosts.filter((post) => {
+      const postTime = post.createdAt.getTime();
+
+      return postTime <= latestDate;
+    });
   }
 
   // limits number of returned posts if numberOfPosts has been set
@@ -115,9 +146,11 @@ export const getBlogPostsByMonth = async (
       post.createdAt.getFullYear() === year
   );
 
-  res.status(200).json(JSON.stringify({
-    message: "Blog posts fetched succesfully.",
-    blogPosts: blogPosts,
-    availableMonths: availableMonths,
-  }));
+  res.status(200).json(
+    JSON.stringify({
+      message: "Blog posts fetched succesfully.",
+      blogPosts: blogPosts,
+      availableMonths: availableMonths,
+    })
+  );
 };
