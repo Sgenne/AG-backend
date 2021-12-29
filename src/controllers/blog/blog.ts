@@ -76,8 +76,6 @@ export const getBlogPosts = async (
 
   // If latest date was provided, remove posts from after the specified date.
   if (latestDateParam) {
-
-    
     // check if provided latest date value is valid
     if (
       typeof latestDateParam !== "string" ||
@@ -93,7 +91,7 @@ export const getBlogPosts = async (
     blogPosts = blogPosts.filter((post) => {
       const postTime = post.createdAt.getTime();
 
-      return postTime <= latestDate;
+      return postTime < latestDate;
     });
   }
 

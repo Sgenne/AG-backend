@@ -1,7 +1,7 @@
 import { Schema, Document, model, Types } from "mongoose";
 import { IImage } from "./image";
 
-interface IImageCategory {
+export interface IImageCategory {
   title: string;
   previewImage: Types.ObjectId | IImage;
 }
