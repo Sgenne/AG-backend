@@ -64,8 +64,11 @@ export const getImageById = async (
   let image;
   const imageId = req.params.imageId;
 
+  console.log("in getImageById")
+
   try {
     image = await Image.findById(imageId);
+    console.log("fetched image: ", image);
   } catch (err) {
     const error = new Error("Could not fetch the image.");
     res.status(500);
@@ -78,10 +81,10 @@ export const getImageById = async (
     return next(error);
   }
 
-  res.status(200).json({
+  res.status(200).json(JSON.stringify({
     message: "Image fetched succesfully.",
     image: image,
-  });
+  }));
 };
 
 export const getCategories = async (
