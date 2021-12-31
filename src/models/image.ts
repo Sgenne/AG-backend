@@ -1,10 +1,12 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
 export interface IImage {
   imageUrl: string;
   compressedImageUrl: string;
   category: string;
 }
+
+export interface IImageDocument extends IImage, Document {}
 
 const imageSchema = new Schema(
   {

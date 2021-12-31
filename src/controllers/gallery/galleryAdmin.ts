@@ -4,7 +4,7 @@ import sharp from "sharp";
 import fs from "fs";
 import util from "util";
 
-import { Image } from "../../models/image";
+import { IImage, IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
 
@@ -123,6 +123,65 @@ export const handleUploadedImage = async (
       image: image,
     })
   );
+};
+
+export const updateImage = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
+  const update = req.body.update;
+  let image: IImageDocument | null;
+
+  if (!update) {
+    const error = new Error(
+      "The image could not be updated since no update was specified."
+    );
+    res.status(400);
+    return next(error);
+  }
+
+  if (!update.id) {
+    const error = new Error("No image id was provided.");
+    res.status(400);
+    return next(error);
+  }
+
+  try {
+    image = await Image.findById(update._id);
+  } catch (err) {
+    const error = new Error(
+      "An error occured while fetching the image to update."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  if (!image) {
+    const error = new Error("No image with the given id was found.");
+    res.status(404);
+    return next(error);
+  }
+
+  for (const key of Object.keys(image)) {
+    if (update[key]) {
+      image[key as keyof IImage] = update[key];
+    }
+  }
+
+  try {
+    await image.save();
+  } catch (err) {
+    console.trace(err);
+    const error = new Error("Could not update the image.");
+    res.status(500);
+    return next(error);
+  }
+
+  res.status(200).json({
+    message: "Image updated succesfully.",
+    image: image,
+  });
 };
 
 export const addScrollingImage = async (

@@ -18,8 +18,10 @@ router.post(
   multer().single("image"),
   handleUploadedImage
 );
+router.put("/gallery/update-image");
 router.post("/gallery/new-scrolling-image", addScrollingImage);
 router.delete("/gallery/delete-scrolling-image", deleteScrollingImage);
+
 
 router.post("/blog/new-post", createPost);
 router.delete("/blog/delete-post", deletePost);
