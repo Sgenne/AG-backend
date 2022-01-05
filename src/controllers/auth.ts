@@ -59,7 +59,7 @@ const registerUser = async (req: Request, res: Response, next: Function) => {
     JSON.stringify({
       message: "User created successfully.",
       user: user,
-      "access-token": token,
+      accessToken: token,
     })
   );
 };
@@ -108,13 +108,20 @@ const signIn = async (req: Request, res: Response, next: Function) => {
     return next(error);
   }
 
+  // access-token used for jwt-authentication
   const token = _generateToken(user, process.env.TOKEN_SECRET);
+
+  // returned user information
+  const exposedUserObject = {
+    email: user.email,
+    accessToken: token,
+    userId: user._id,
+  };
 
   return res.status(200).json(
     JSON.stringify({
       message: "Signed in successfully.",
-      user: user,
-      "access-token": token,
+      user: exposedUserObject,
     })
   );
 };

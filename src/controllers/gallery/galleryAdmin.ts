@@ -91,7 +91,6 @@ export const handleUploadedImage = async (
 
     fs.writeFileSync(imagePath, req.file.buffer);
   } catch (err) {
-    console.log(err);
     const error = new Error("Could not upload image.");
     res.status(500);
     return next(error);
@@ -182,6 +181,45 @@ export const updateImage = async (
     message: "Image updated succesfully.",
     image: image,
   });
+};
+
+export const deleteImage = async (
+  req: Request,
+  res: Response,
+  next: Function
+) => {
+  const imageId: string = req.body.imageId;
+  let image: IImage | null;
+
+  if (!imageId) {
+    const error = new Error(
+      "No image-id was provided. Please provide the image-id of the image to delete."
+    );
+    res.status(400);
+    return next(error);
+  }
+
+  try {
+    image = await Image.findByIdAndDelete(imageId);
+  } catch (err) {
+    const error = new Error("Something went wrong while deleting the image.");
+    res.status(500);
+    return next(error);
+  }
+
+  if (!image) {
+    const error = new Error(
+      "No image with the given image-id was found. Please provide the valid image-id of the image to delete."
+    );
+    res.status(404);
+    return next(error);
+  }
+
+  res.status(200).json(
+    JSON.stringify({
+      message: "Image deleted successfully.",
+    })
+  );
 };
 
 export const addScrollingImage = async (
