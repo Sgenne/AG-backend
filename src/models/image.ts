@@ -4,6 +4,8 @@ export interface IImage {
   imageUrl: string;
   compressedImageUrl: string;
   category: string;
+  relativeImagePath: string;
+  relativeCompressedImagePath: string;
 }
 
 export interface IImageDocument extends IImage, Document {}
@@ -16,6 +18,16 @@ const imageSchema = new Schema(
       unique: true,
     },
     compressedImageUrl: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    relativeImagePath: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    relativeCompressedImagePath: {
       type: String,
       required: true,
       unique: true,

@@ -2,13 +2,12 @@ import path from "path";
 import { Request, Response } from "express";
 import sharp from "sharp";
 import fs from "fs";
-import util from "util";
 
 import { IImage, IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
 
-const _ROOT_FOLDER_PATH = path.join(__dirname, "../../");
+const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
 const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
 const _COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
 
@@ -91,25 +90,30 @@ export const handleUploadedImage = async (
 
     fs.writeFileSync(imagePath, req.file.buffer);
   } catch (err) {
+    console.trace(err);
     const error = new Error("Could not upload image.");
     res.status(500);
     return next(error);
   }
 
+  const relativeImagePath = `${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`;
+  const relativeCompressedImagePath = `${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`;
+
   const image = new Image({
-    imageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`,
-    compressedImageUrl: `${process.env.HOST_NAME}:${process.env.PORT}/${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`,
+    imageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeImagePath}`,
+    compressedImageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeCompressedImagePath}`,
+    relativeImagePath: relativeImagePath,
+    relativeCompressedImagePath: relativeCompressedImagePath,
     category: category.toLowerCase(),
   });
 
   try {
     await image.save();
   } catch (err) {
+    console.trace(err);
     await Promise.all([
-      util.promisify(fs.unlink)(path.join(_ROOT_FOLDER_PATH, imagePath)),
-      util.promisify(fs.unlink)(
-        path.join(_ROOT_FOLDER_PATH, compressedImagePath)
-      ),
+      fs.promises.unlink(path.join(relativeImagePath)),
+      fs.promises.unlink(path.join(relativeCompressedImagePath)),
     ]);
     const error = new Error("Could not update database.");
     res.status(500);
@@ -213,6 +217,15 @@ export const deleteImage = async (
     );
     res.status(404);
     return next(error);
+  }
+
+  try {
+    await Promise.all([
+      fs.promises.unlink(path.join(image.relativeImagePath)),
+      fs.promises.unlink(path.join(image.relativeCompressedImagePath)),
+    ]);
+  } catch (err) {
+    console.trace(err);
   }
 
   res.status(200).json(
