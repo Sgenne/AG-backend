@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 
-import { Image } from "../../models/image";
+import { IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
 import { IImage } from "../../models/image";
@@ -57,9 +57,8 @@ export const getImageById = async (
   res: Response,
   next: Function
 ) => {
-  let image;
+  let image: IImage | null;
   const imageId = req.params.imageId;
-
 
   try {
     image = await Image.findById(imageId);

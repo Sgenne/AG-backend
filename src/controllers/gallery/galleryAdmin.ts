@@ -111,10 +111,7 @@ export const handleUploadedImage = async (
     await image.save();
   } catch (err) {
     console.trace(err);
-    await Promise.all([
-      fs.promises.unlink(path.join(relativeImagePath)),
-      fs.promises.unlink(path.join(relativeCompressedImagePath)),
-    ]);
+    await image.unlink();
     const error = new Error("Could not update database.");
     res.status(500);
     return next(error);
@@ -191,7 +188,7 @@ export const deleteImage = async (
   next: Function
 ) => {
   const imageId: string = req.body.imageId;
-  let image: IImage | null;
+  let image: IImageDocument | null;
 
   if (!imageId) {
     const error = new Error(
@@ -202,7 +199,7 @@ export const deleteImage = async (
   }
 
   try {
-    image = await Image.findByIdAndDelete(imageId);
+    image = await Image.findById(imageId);
   } catch (err) {
     const error = new Error("Something went wrong while deleting the image.");
     res.status(500);
@@ -218,12 +215,25 @@ export const deleteImage = async (
   }
 
   try {
-    await Promise.all([
-      fs.promises.unlink(path.join(image.relativeImagePath)),
-      fs.promises.unlink(path.join(image.relativeCompressedImagePath)),
-    ]);
+    await image.unlink();
   } catch (err) {
     console.trace(err);
+    const error = new Error(
+      "The image could not be deleted from the file system."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  try {
+    await image.delete();
+  } catch (err) {
+    console.trace(err);
+    const error = new Error(
+      "The image was deleted from the file system, but could not be deleted from the database."
+    );
+    res.status(500);
+    return next(error);
   }
 
   res.status(200).json({
