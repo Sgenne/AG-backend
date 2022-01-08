@@ -120,12 +120,10 @@ export const handleUploadedImage = async (
     return next(error);
   }
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Image uploaded successfully.",
-      image: image,
-    })
-  );
+  res.status(200).json({
+    message: "Image uploaded successfully.",
+    image: image,
+  });
 };
 
 export const updateImage = async (
@@ -228,11 +226,9 @@ export const deleteImage = async (
     console.trace(err);
   }
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Image deleted successfully.",
-    })
-  );
+  res.status(200).json({
+    message: "Image deleted successfully.",
+  });
 };
 
 export const addScrollingImage = async (

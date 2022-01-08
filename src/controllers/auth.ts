@@ -55,13 +55,11 @@ const registerUser = async (req: Request, res: Response, next: Function) => {
 
   const token = _generateToken(user, process.env.TOKEN_SECRET);
 
-  return res.status(201).json(
-    JSON.stringify({
-      message: "User created successfully.",
-      user: user,
-      accessToken: token,
-    })
-  );
+  return res.status(201).json({
+    message: "User created successfully.",
+    user: user,
+    accessToken: token,
+  });
 };
 
 const signIn = async (req: Request, res: Response, next: Function) => {
@@ -118,12 +116,10 @@ const signIn = async (req: Request, res: Response, next: Function) => {
     userId: user._id,
   };
 
-  return res.status(200).json(
-    JSON.stringify({
-      message: "Signed in successfully.",
-      user: exposedUserObject,
-    })
-  );
+  return res.status(200).json({
+    message: "Signed in successfully.",
+    user: exposedUserObject,
+  });
 };
 
 const _generateToken = (user: { email: string }, secret: string) => {

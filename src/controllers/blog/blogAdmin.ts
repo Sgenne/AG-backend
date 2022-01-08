@@ -29,12 +29,10 @@ export const createPost = async (
     return next(error);
   }
 
-  res.status(201).json(
-    JSON.stringify({
-      message: "Blog post created successfully.",
-      "created-post": blogPost,
-    })
-  );
+  res.status(201).json({
+    message: "Blog post created successfully.",
+    "created-post": blogPost,
+  });
 };
 
 export const deletePost = async (

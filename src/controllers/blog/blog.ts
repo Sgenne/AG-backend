@@ -98,13 +98,11 @@ export const getBlogPosts = async (
   // limits number of returned posts if numberOfPosts has been set
   blogPosts = blogPosts.slice(0, numberOfPosts as number); // can safely cast because of previous check
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Blog posts fetched successfully.",
-      blogPosts: blogPosts,
-      availableMonths: availableMonths,
-    })
-  );
+  res.status(200).json({
+    message: "Blog posts fetched successfully.",
+    blogPosts: blogPosts,
+    availableMonths: availableMonths,
+  });
 };
 
 // returns all blog posts from the specified month
@@ -144,11 +142,9 @@ export const getBlogPostsByMonth = async (
       post.createdAt.getFullYear() === year
   );
 
-  res.status(200).json(
-    JSON.stringify({
-      message: "Blog posts fetched succesfully.",
-      blogPosts: blogPosts,
-      availableMonths: availableMonths,
-    })
-  );
+  res.status(200).json({
+    message: "Blog posts fetched succesfully.",
+    blogPosts: blogPosts,
+    availableMonths: availableMonths,
+  });
 };

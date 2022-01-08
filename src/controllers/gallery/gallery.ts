@@ -19,13 +19,11 @@ export const getImages = async (
 ) => {
   try {
     const [images, categories] = await _fetchImages();
-    res.json(
-      JSON.stringify({
-        message: "Successfully fetched images.",
-        images: images,
-        categories: categories,
-      })
-    );
+    res.json({
+      message: "Successfully fetched images.",
+      images: images,
+      categories: categories,
+    });
   } catch (err) {
     const error = new Error("Something went wrong while fetching images.");
     res.status(500);
@@ -42,13 +40,11 @@ export const getImagesByCategory = async (
   try {
     const [categoryImages, categories]: [IImage[], IImageCategory[]] =
       await _fetchImages({ category: category });
-    res.status(200).json(
-      JSON.stringify({
-        message: "Successfully fetched images.",
-        images: categoryImages,
-        categories: categories,
-      })
-    );
+    res.status(200).json({
+      message: "Successfully fetched images.",
+      images: categoryImages,
+      categories: categories,
+    });
   } catch (err) {
     const error = new Error("Something went wrong while fetching images.");
     res.status(500);
@@ -64,11 +60,9 @@ export const getImageById = async (
   let image;
   const imageId = req.params.imageId;
 
-  console.log("in getImageById")
 
   try {
     image = await Image.findById(imageId);
-    console.log("fetched image: ", image);
   } catch (err) {
     const error = new Error("Could not fetch the image.");
     res.status(500);
@@ -81,10 +75,10 @@ export const getImageById = async (
     return next(error);
   }
 
-  res.status(200).json(JSON.stringify({
+  res.status(200).json({
     message: "Image fetched succesfully.",
     image: image,
-  }));
+  });
 };
 
 export const getCategories = async (
@@ -100,12 +94,10 @@ export const getCategories = async (
     res.status(500);
     return next(error);
   }
-  res.status(200).json(
-    JSON.stringify({
-      message: "Categories fetched successfully.",
-      categories: categories,
-    })
-  );
+  res.status(200).json({
+    message: "Categories fetched successfully.",
+    categories: categories,
+  });
 };
 
 export const getScrollingImages = async (
@@ -115,12 +107,10 @@ export const getScrollingImages = async (
 ) => {
   try {
     const scrollingImages = await ScrollingImage.find().populate("image");
-    res.status(200).json(
-      JSON.stringify({
-        message: "Successfully fetched scrolling images.",
-        scrollingImages: scrollingImages,
-      })
-    );
+    res.status(200).json({
+      message: "Successfully fetched scrolling images.",
+      scrollingImages: scrollingImages,
+    });
   } catch (error) {
     error = new Error("Could not fetch scrolling images.");
     res.status(500);
