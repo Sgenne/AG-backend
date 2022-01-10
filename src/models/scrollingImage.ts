@@ -1,9 +1,11 @@
-import { Schema, Types, model } from "mongoose";
+import { Schema, Types, model, Document } from "mongoose";
 import { IImage } from "./image";
 
-interface IScrollingImage {
+export interface IScrollingImage {
   image: Types.ObjectId | IImage;
 }
+
+export interface IScrollingImageDocument extends IScrollingImage, Document {}
 
 const scrollingImageSchema = new Schema({
   image: {

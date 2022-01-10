@@ -1,4 +1,4 @@
-import { Response, Request } from "express";
+import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 import { User, IUser } from "../models/user";
@@ -6,7 +6,7 @@ import { User, IUser } from "../models/user";
 export const authenticateUser = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let accessToken = req.header("Authorization");
   const userId = req.header("UserId");

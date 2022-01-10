@@ -1,4 +1,4 @@
-import { Response, Request } from "express";
+import { Response, Request, NextFunction } from "express";
 
 import { BlogPost, IBlogPost } from "../../models/blogPost";
 
@@ -44,7 +44,7 @@ const _fetchBlogPosts = async (): Promise<{
 export const getBlogPosts = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let blogPosts: IBlogPost[];
   let availableMonths: MonthAndYear[];
@@ -109,7 +109,7 @@ export const getBlogPosts = async (
 export const getBlogPostsByMonth = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let blogPosts: IBlogPost[];
   let availableMonths: MonthAndYear[];

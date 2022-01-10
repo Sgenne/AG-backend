@@ -1,11 +1,11 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 import { BlogPost, IBlogPost } from "../../models/blogPost";
 
 export const createPost = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const title = req.body.title;
   const content = req.body.content;
@@ -38,7 +38,7 @@ export const createPost = async (
 export const deletePost = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const postId: string = req.body.postId;
   let post: IBlogPost | null;

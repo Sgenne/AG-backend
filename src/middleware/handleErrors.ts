@@ -1,10 +1,10 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
 export const handleErrors = (
   error: Error,
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let message = error.message;
 
@@ -18,7 +18,7 @@ export const handleErrors = (
   });
 };
 
-export const handle404 = (req: Request, res: Response, next: Function) => {
+export const handle404 = (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     message: "Invalid URL.",
   });

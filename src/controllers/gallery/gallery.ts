@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 
-import { IImageDocument, Image } from "../../models/image";
+import { Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
 import { IImage } from "../../models/image";
@@ -15,7 +15,7 @@ const _fetchImages = (
 export const getImages = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   try {
     const [images, categories] = await _fetchImages();
@@ -34,7 +34,7 @@ export const getImages = async (
 export const getImagesByCategory = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const category = req.params.category;
   try {
@@ -55,7 +55,7 @@ export const getImagesByCategory = async (
 export const getImageById = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let image: IImage | null;
   const imageId = req.params.imageId;
@@ -83,7 +83,7 @@ export const getImageById = async (
 export const getCategories = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   let categories;
   try {
@@ -102,7 +102,7 @@ export const getCategories = async (
 export const getScrollingImages = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   try {
     const scrollingImages = await ScrollingImage.find().populate("image");

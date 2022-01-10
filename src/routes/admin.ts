@@ -24,6 +24,7 @@ router.delete("/gallery/delete-image", deleteImage);
 
 router.post("/gallery/new-scrolling-image", addScrollingImage);
 router.delete("/gallery/delete-scrolling-image", deleteScrollingImage);
+router.post("/gallery/replace-scrolling-images")
 
 router.post("/blog/new-post", createPost);
 router.delete("/blog/delete-post", deletePost);

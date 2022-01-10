@@ -1,10 +1,10 @@
-import { Response, Request } from "express";
+import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import { User } from "../models/user";
 
-const registerUser = async (req: Request, res: Response, next: Function) => {
+const registerUser = async (req: Request, res: Response, next: NextFunction) => {
   const name = req.body.name;
   const email = req.body.email.toLowerCase();
   const password = req.body.password;
@@ -62,7 +62,7 @@ const registerUser = async (req: Request, res: Response, next: Function) => {
   });
 };
 
-const signIn = async (req: Request, res: Response, next: Function) => {
+const signIn = async (req: Request, res: Response, next: NextFunction) => {
   const email = req.body.email;
   const password = req.body.password;
   let user;

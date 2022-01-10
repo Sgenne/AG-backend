@@ -1,11 +1,15 @@
 import path from "path";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import sharp from "sharp";
 import fs from "fs";
 
 import { IImage, IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
-import { ScrollingImage } from "../../models/scrollingImage";
+import {
+  IScrollingImage,
+  IScrollingImageDocument,
+  ScrollingImage,
+} from "../../models/scrollingImage";
 
 const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
 const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
@@ -14,7 +18,7 @@ const _COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
 export const createImageCategory = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const categoryTitle = req.body.categoryTitle;
 
@@ -45,7 +49,7 @@ export const createImageCategory = async (
 export const handleUploadedImage = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const category = req.body.category;
 
@@ -126,7 +130,7 @@ export const handleUploadedImage = async (
 export const updateImage = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const update = req.body.update;
   let image: IImageDocument | null;
@@ -185,7 +189,7 @@ export const updateImage = async (
 export const deleteImage = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const imageId: string = req.body.imageId;
   let image: IImageDocument | null;
@@ -244,7 +248,7 @@ export const deleteImage = async (
 export const addScrollingImage = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const scrollingImageId = req.body["scrolling-image-id"];
 
@@ -279,7 +283,7 @@ export const addScrollingImage = async (
 export const deleteScrollingImage = async (
   req: Request,
   res: Response,
-  next: Function
+  next: NextFunction
 ) => {
   const scrollingImageId = req.body["scrolling-image-id"];
 
@@ -302,4 +306,73 @@ export const deleteScrollingImage = async (
   res.status(200).json({
     message: "Image deleted successfully.",
   });
+};
+
+// Gets a list of the new scrolling image ids from the request body,
+// and replaces the previous scrolling images. If any of the new
+// scrolling images is not found, then the old scrolling images
+// will remain.
+export const replaceScrollingImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // The ids of the images that will replace the current scrolling images.
+  const newScrollingImageIds: string[] = req.body.newScrollingImageIds;
+  let newScrollingImages: (IImageDocument | null)[];
+
+  if (!newScrollingImageIds) {
+    const error = new Error(
+      "The ids of the new scrolling images were not provided."
+    );
+    res.status(400);
+    return next(error);
+  }
+
+  try {
+    // Fetch the new scrolling images from DB.
+    newScrollingImages = await Promise.all(
+      newScrollingImageIds.map((id) => Image.findById(id))
+    );
+  } catch (err) {
+    console.trace(err);
+    const error = new Error(
+      "The new scrolling images could not be fetched from the database."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  // If any of the images were not found, return 404.
+  if (newScrollingImages.some((image) => image === null)) {
+    const error = new Error(
+      "An image with the given image id could not be found."
+    );
+    res.status(404);
+    return next(error);
+  }
+
+  try {
+    // Wait for all async operations simultaneously
+    await Promise.all([
+      // Create a new ScrollingImage for each of the specified images.
+      ...newScrollingImages.map((image) => {
+        const newScrollingImage = new ScrollingImage({ image: image });
+        return newScrollingImage.save();
+      }),
+
+      // Delete previous scrolling images. I.e. delete all scrolling images
+      // whose ids are not in newScrollingImageIds.
+      ScrollingImage.deleteMany({ image: { $nin: newScrollingImageIds } }),
+    ]);
+  } catch (err) {
+    console.trace(err);
+    const error = new Error(
+      "Could not update database with new scrolling images."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  res.status(200).json({ message: "Scrolling images succesfully replaced." });
 };
