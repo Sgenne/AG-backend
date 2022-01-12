@@ -5,11 +5,7 @@ import fs from "fs";
 
 import { IImage, IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
-import {
-  IScrollingImage,
-  IScrollingImageDocument,
-  ScrollingImage,
-} from "../../models/scrollingImage";
+import { ScrollingImage } from "../../models/scrollingImage";
 
 const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
 const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
@@ -21,12 +17,6 @@ export const createImageCategory = async (
   next: NextFunction
 ) => {
   const categoryTitle = req.body.categoryTitle;
-
-  if (!categoryTitle) {
-    const error = new Error("Could not create category.");
-    res.status(400);
-    return next(error);
-  }
 
   const category = new ImageCategory({
     title: categoryTitle,
@@ -54,8 +44,8 @@ export const handleUploadedImage = async (
   const category = req.body.category;
 
   if (!req.file) {
-    const error = new Error("No image was provided.");
-    res.status(400);
+    const error = new Error("Something went wrong. The image could not be uploaded.");
+    res.status(500);
     throw error;
   }
 
@@ -321,8 +311,6 @@ export const replaceScrollingImages = async (
   // in the order of appearance.
   const newScrollingImageIds: string[] = req.body.newScrollingImageIds;
   let newScrollingImages: ({} | null)[];
-
-  console.log("newScrollingImageIds: ", newScrollingImageIds);
 
   if (!newScrollingImageIds) {
     const error = new Error(

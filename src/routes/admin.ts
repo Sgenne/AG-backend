@@ -2,6 +2,10 @@ import { Router } from "express";
 import multer from "multer";
 
 import {
+  validateCreateImageCategory,
+  validateUploadImage,
+} from "../middleware/requestValidation";
+import {
   createImageCategory,
   handleUploadedImage,
   addScrollingImage,
@@ -14,9 +18,14 @@ import { createPost, deletePost } from "../controllers/blog/blogAdmin";
 
 const router: Router = Router();
 
-router.post("/gallery/new-image-category", createImageCategory);
+router.post(
+  "/gallery/new-image-category",
+  validateCreateImageCategory,
+  createImageCategory
+);
 router.post(
   "/gallery/upload-image",
+  validateUploadImage,
   multer().single("image"),
   handleUploadedImage
 );
