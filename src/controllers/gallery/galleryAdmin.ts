@@ -317,9 +317,12 @@ export const replaceScrollingImages = async (
   res: Response,
   next: NextFunction
 ) => {
-  // The ids of the images that will replace the current scrolling images.
+  // The ids of the images that will replace the current scrolling images,
+  // in the order of appearance.
   const newScrollingImageIds: string[] = req.body.newScrollingImageIds;
-  let newScrollingImages: (IImageDocument | null)[];
+  let newScrollingImages: ({} | null)[];
+
+  console.log("newScrollingImageIds: ", newScrollingImageIds);
 
   if (!newScrollingImageIds) {
     const error = new Error(
@@ -352,19 +355,23 @@ export const replaceScrollingImages = async (
     return next(error);
   }
 
-  try {
-    // Wait for all async operations simultaneously
-    await Promise.all([
-      // Create a new ScrollingImage for each of the specified images.
-      ...newScrollingImages.map((image) => {
-        const newScrollingImage = new ScrollingImage({ image: image });
-        return newScrollingImage.save();
-      }),
+  // Create a function for each new scrolling image which produces the
+  // new ScrollingImage object.
+  const newScrollingImageFunctions: (() => Promise<void>)[] =
+    newScrollingImages.map((image, index) => async () => {
+      const newScrollingImage = new ScrollingImage({
+        image: image,
+        order: index,
+      });
+      await newScrollingImage.save();
+    });
 
-      // Delete previous scrolling images. I.e. delete all scrolling images
-      // whose ids are not in newScrollingImageIds.
-      ScrollingImage.deleteMany({ image: { $nin: newScrollingImageIds } }),
-    ]);
+  try {
+    // Delete previous scrolling images.
+    await ScrollingImage.deleteMany();
+
+    // Create new ScrollingImage objects.
+    await Promise.all(newScrollingImageFunctions.map((func) => func()));
   } catch (err) {
     console.trace(err);
     const error = new Error(
