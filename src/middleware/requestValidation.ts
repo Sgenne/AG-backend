@@ -1,27 +1,5 @@
-import path from "path";
-
 import { NextFunction, Request, Response } from "express";
-import { body, CustomValidator, validationResult } from "express-validator";
-
-const VALID_IMAGE_EXTENSIONS = ["jpg", "jpeg"];
-
-/*
-=====================
-Custom validators
-=====================
-*/
-
-// Validates that the given value is an image of
-// an accepted format.
-const _isImage: CustomValidator = (file) => {
-  if (file instanceof File) {
-    const extension = path.extname(file.name);
-    if (VALID_IMAGE_EXTENSIONS.includes(extension)) {
-      return true;
-    }
-  }
-  return false;
-};
+import { body, validationResult } from "express-validator";
 
 const _handleValidationResult = (
   req: Request,
@@ -46,7 +24,73 @@ export const validateCreateImageCategory = [
   _handleValidationResult,
 ];
 
-export const validateUploadImage = [
-  body("image").custom(_isImage),
+export const validateUploadImage = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  if (!req.file) {
+    const error = new Error(
+      "Something went wrong. The image could not be uploaded."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  if (!req.body.category) {
+    const error = new Error("No category was provided");
+    res.status(400);
+    return next(error);
+  }
+
+  if (
+    !(req.file.mimetype === "image/jpg" || req.file.mimetype === "image/jpeg")
+  ) {
+    const error = new Error("Invalid image format.");
+    res.status(400);
+    return next(error);
+  }
+
+  next();
+};
+
+export const validateDeleteImage = [
+  body("imageId").exists().withMessage("No image-id was provided."),
+  _handleValidationResult,
+];
+
+export const validateAddScrollingImage = [
+  body("scrollingImageId")
+    .exists()
+    .withMessage("Please provide the id of image to add as a scrolling image."),
+  _handleValidationResult,
+];
+
+export const validateDeleteScrollingImage = [
+  body("scrollingImageId")
+    .exists()
+    .withMessage("Please provide the id of the scrolling image to delete."),
+  _handleValidationResult,
+];
+
+export const validateReplaceScrollingImages = [
+  body("newScrollingImageIds")
+    .exists()
+    .withMessage("The ids of the new scrolling images were not provided."),
+  _handleValidationResult,
+];
+
+export const validateCreateBlogPost = [
+  body("title").exists().withMessage("The title of the post was not provided."),
+  body("content")
+    .exists()
+    .withMessage("The content of the post was not provided."),
+  _handleValidationResult,
+];
+
+export const validateDeleteBlogPost = [
+  body("postId")
+    .exists()
+    .withMessage("The id of the blog post to delete was not provided."),
   _handleValidationResult,
 ];

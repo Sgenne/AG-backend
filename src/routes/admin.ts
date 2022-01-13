@@ -2,7 +2,13 @@ import { Router } from "express";
 import multer from "multer";
 
 import {
+  validateAddScrollingImage,
+  validateCreateBlogPost,
   validateCreateImageCategory,
+  validateDeleteBlogPost,
+  validateDeleteImage,
+  validateDeleteScrollingImage,
+  validateReplaceScrollingImages,
   validateUploadImage,
 } from "../middleware/requestValidation";
 import {
@@ -25,18 +31,29 @@ router.post(
 );
 router.post(
   "/gallery/upload-image",
-  validateUploadImage,
   multer().single("image"),
+  validateUploadImage,
   handleUploadedImage
 );
-router.put("/gallery/update-image");
-router.delete("/gallery/delete-image", deleteImage);
+router.delete("/gallery/delete-image", validateDeleteImage, deleteImage);
 
-router.post("/gallery/new-scrolling-image", addScrollingImage);
-router.delete("/gallery/delete-scrolling-image", deleteScrollingImage);
-router.post("/gallery/replace-scrolling-images", replaceScrollingImages);
+router.post(
+  "/gallery/new-scrolling-image",
+  validateAddScrollingImage,
+  addScrollingImage
+);
+router.delete(
+  "/gallery/delete-scrolling-image",
+  validateDeleteScrollingImage,
+  deleteScrollingImage
+);
+router.post(
+  "/gallery/replace-scrolling-images",
+  validateReplaceScrollingImages,
+  replaceScrollingImages
+);
 
-router.post("/blog/new-post", createPost);
-router.delete("/blog/delete-post", deletePost);
+router.post("/blog/new-post", validateCreateBlogPost, createPost);
+router.delete("/blog/delete-post", validateDeleteBlogPost, deletePost);
 
 export default router;

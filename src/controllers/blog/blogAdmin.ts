@@ -10,12 +10,6 @@ export const createPost = async (
   const title = req.body.title;
   const content = req.body.content;
 
-  if (!(title && content)) {
-    const error = new Error("Please provide a valid title and content.");
-    res.status(400);
-    return next(error);
-  }
-
   const blogPost = new BlogPost({
     title: title,
     content: content,
@@ -42,12 +36,6 @@ export const deletePost = async (
 ) => {
   const postId: string = req.body.postId;
   let post: IBlogPost | null;
-
-  if (!postId) {
-    const error = new Error("No post-id was provided.");
-    res.status(400);
-    return next(error);
-  }
 
   try {
     post = await BlogPost.findByIdAndDelete(postId);
