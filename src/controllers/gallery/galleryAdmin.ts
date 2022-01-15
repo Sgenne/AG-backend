@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from "express";
 import sharp from "sharp";
 import fs from "fs";
 
-import { IImageDocument, Image } from "../../models/image";
+import { IImage, IImageDocument, Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { IScrollingImage, ScrollingImage } from "../../models/scrollingImage";
 
@@ -17,16 +17,36 @@ export const createImageCategory = async (
   next: NextFunction
 ) => {
   const categoryTitle = req.body.categoryTitle;
+  const previewImageId = req.body.previewImageId;
+  let previewImage: IImage | null;
+
+  try {
+    previewImage = await Image.findById(previewImageId);
+  } catch (err) {
+    const error = new Error(
+      "Could not fetch the preview image from the database."
+    );
+    return next(error);
+  }
+
+  if (!previewImage) {
+    const error = new Error(
+      "No image with the given preview image-id was found."
+    );
+    res.status(404);
+    return next(error);
+  }
 
   const category = new ImageCategory({
     title: categoryTitle,
+    previewImage: previewImage,
   });
 
   try {
     await category.save();
   } catch (e) {
-    const error = new Error("Invalid category");
-    res.status(400);
+    const error = new Error("Could not create category");
+    res.status(500);
     return next(error);
   }
   res.status(201).json({
@@ -42,6 +62,14 @@ export const handleUploadedImage = async (
   next: NextFunction
 ) => {
   const category = req.body.category;
+
+  if (!req.file) {
+    const error = new Error(
+      "Something went wrong. The image could not be uploaded."
+    );
+    res.status(500);
+    throw error;
+  }
 
   const originalName = req.file.originalname;
   const compressedImageName = "(compressed)" + originalName;
