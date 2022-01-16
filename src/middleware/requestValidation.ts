@@ -21,9 +21,14 @@ export const validateCreateImageCategory = [
   body("categoryTitle")
     .isLength({ min: 3, max: 16 })
     .withMessage("No category title was provided."),
+  _handleValidationResult,
+];
+
+export const validateSetImageCategoryPreviewImage = [
   body("previewImageId")
     .exists()
     .withMessage("No preview image-id was provided."),
+  body("categoryId").exists().withMessage("No category-id was provided."),
   _handleValidationResult,
 ];
 

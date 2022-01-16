@@ -6,6 +6,8 @@ export interface IImageCategory {
   previewImage: Types.ObjectId | IImage;
 }
 
+export interface IImageCategoryDocument extends IImageCategory, Document {}
+
 const ImageCategorySchema = new Schema({
   title: {
     type: String,
@@ -14,8 +16,11 @@ const ImageCategorySchema = new Schema({
   previewImage: {
     type: Types.ObjectId,
     ref: "Image",
-    required: true,
+    required: false,
   },
 });
 
-export const ImageCategory = model<IImageCategory>("ImageCategory", ImageCategorySchema);
+export const ImageCategory = model<IImageCategory>(
+  "ImageCategory",
+  ImageCategorySchema
+);

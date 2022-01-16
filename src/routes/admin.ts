@@ -9,6 +9,7 @@ import {
   validateDeleteImage,
   validateDeleteScrollingImage,
   validateReplaceScrollingImages,
+  validateSetImageCategoryPreviewImage,
   validateUploadImage,
 } from "../middleware/requestValidation";
 import {
@@ -18,6 +19,7 @@ import {
   deleteScrollingImage,
   deleteImage,
   replaceScrollingImages,
+  setImageCategoryPreviewImage,
 } from "../controllers/gallery/galleryAdmin";
 
 import { createPost, deletePost } from "../controllers/blog/blogAdmin";
@@ -25,16 +27,23 @@ import { createPost, deletePost } from "../controllers/blog/blogAdmin";
 const router: Router = Router();
 
 router.post(
-  "/gallery/new-image-category",
+  "/gallery/new-category",
   validateCreateImageCategory,
   createImageCategory
 );
+router.post(
+  "/gallery/set-category-preview-image",
+  validateSetImageCategoryPreviewImage,
+  setImageCategoryPreviewImage
+);
+
 router.post(
   "/gallery/upload-image",
   multer().single("image"),
   validateUploadImage,
   handleUploadedImage
 );
+
 router.delete("/gallery/delete-image", validateDeleteImage, deleteImage);
 
 router.post(

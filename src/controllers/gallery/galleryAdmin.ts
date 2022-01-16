@@ -4,7 +4,10 @@ import sharp from "sharp";
 import fs from "fs";
 
 import { IImage, IImageDocument, Image } from "../../models/image";
-import { ImageCategory } from "../../models/imageCategory";
+import {
+  ImageCategory,
+  IImageCategoryDocument,
+} from "../../models/imageCategory";
 import { IScrollingImage, ScrollingImage } from "../../models/scrollingImage";
 
 const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
@@ -17,29 +20,9 @@ export const createImageCategory = async (
   next: NextFunction
 ) => {
   const categoryTitle = req.body.categoryTitle;
-  const previewImageId = req.body.previewImageId;
-  let previewImage: IImage | null;
-
-  try {
-    previewImage = await Image.findById(previewImageId);
-  } catch (err) {
-    const error = new Error(
-      "Could not fetch the preview image from the database."
-    );
-    return next(error);
-  }
-
-  if (!previewImage) {
-    const error = new Error(
-      "No image with the given preview image-id was found."
-    );
-    res.status(404);
-    return next(error);
-  }
 
   const category = new ImageCategory({
     title: categoryTitle,
-    previewImage: previewImage,
   });
 
   try {
@@ -52,6 +35,63 @@ export const createImageCategory = async (
   res.status(201).json({
     message: "Category created successfully.",
     "created-category": category,
+  });
+};
+
+export const setImageCategoryPreviewImage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  // Id of the new preview image.
+  const previewImageId = req.body.previewImageId;
+  let previewImage: IImage | null;
+
+  // Id of the image category that should received the new preview image.
+  const categoryId = req.body.categoryId;
+  let category: IImageCategoryDocument | null;
+
+  // Fetch preview image and image category from DB using the given ids.
+  try {
+    [previewImage, category] = await Promise.all([
+      Image.findById(previewImageId),
+      ImageCategory.findById(categoryId),
+    ]);
+  } catch (err) {
+    const error = new Error(
+      "Could not get the required data from the database."
+    );
+    res.status(500);
+    return next(error);
+  }
+
+  if (!category) {
+    const error = new Error(
+      "No image category with the given id could be found."
+    );
+    res.status(404);
+    return next(error);
+  }
+
+  if (!previewImage) {
+    return res
+      .status(404)
+      .json({ message: "No image with the given id could be found." });
+  }
+
+  category.previewImage = previewImage;
+
+  try {
+    await category.save();
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ message: "The category could not be updated" });
+  }
+
+  res.status(200).json({
+    message: "Category preview image updated successfully.",
+    category: category,
   });
 };
 
