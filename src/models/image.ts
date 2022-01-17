@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs";
 
 export interface IImage {
+  filename: string;
   imageUrl: string;
   compressedImageUrl: string;
   category: string;
@@ -15,6 +16,11 @@ export interface IImageDocument extends IImage, Document {}
 
 const imageSchema = new Schema(
   {
+    filename: {
+      required: true,
+      type: String,
+      unique: true,
+    },
     imageUrl: {
       type: String,
       required: true,

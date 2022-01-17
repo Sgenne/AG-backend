@@ -1,5 +1,5 @@
 import path from "path";
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import sharp from "sharp";
 import fs from "fs";
 
@@ -122,6 +122,7 @@ export const handleUploadedImage = async (req: Request, res: Response) => {
   const relativeCompressedImagePath = `${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`;
 
   const image = new Image({
+    filename: originalName,
     imageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeImagePath}`,
     compressedImageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeCompressedImagePath}`,
     relativeImagePath: relativeImagePath,
