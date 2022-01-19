@@ -24,6 +24,13 @@ export const validateCreateImageCategory = [
   _handleValidationResult,
 ];
 
+export const validateDeleteImageCategory = [
+  body("categoryId")
+    .exists()
+    .withMessage("No category-id of the category to delete was provided."),
+  _handleValidationResult,
+];
+
 export const validateSetImageCategoryPreviewImage = [
   body("previewImageId")
     .exists()

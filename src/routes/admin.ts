@@ -7,13 +7,15 @@ import {
   validateCreateImageCategory,
   validateDeleteBlogPost,
   validateDeleteImage,
+  validateDeleteImageCategory,
   validateDeleteScrollingImage,
   validateReplaceScrollingImages,
   validateSetImageCategoryPreviewImage,
   validateUploadImage,
 } from "../middleware/requestValidation";
 import {
-  createImageCategory,
+  createCategory,
+  deleteCategory,
   handleUploadedImage,
   addScrollingImage,
   deleteScrollingImage,
@@ -29,12 +31,17 @@ const router: Router = Router();
 router.post(
   "/gallery/new-category",
   validateCreateImageCategory,
-  createImageCategory
+  createCategory
 );
 router.post(
   "/gallery/set-category-preview-image",
   validateSetImageCategoryPreviewImage,
   setImageCategoryPreviewImage
+);
+router.delete(
+  "/gallery/delete-category",
+  validateDeleteImageCategory,
+  deleteCategory
 );
 
 router.post(

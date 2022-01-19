@@ -7,6 +7,7 @@ import { IImage, IImageDocument, Image } from "../../models/image";
 import {
   ImageCategory,
   IImageCategoryDocument,
+  IImageCategory,
 } from "../../models/imageCategory";
 import { IScrollingImage, ScrollingImage } from "../../models/scrollingImage";
 
@@ -14,7 +15,7 @@ const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
 const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
 const _COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
 
-export const createImageCategory = async (req: Request, res: Response) => {
+export const createCategory = async (req: Request, res: Response) => {
   const categoryTitle = req.body.categoryTitle;
 
   const category = new ImageCategory({
@@ -28,7 +29,31 @@ export const createImageCategory = async (req: Request, res: Response) => {
   }
   res.status(201).json({
     message: "Category created successfully.",
-    "created-category": category,
+    category: category,
+  });
+};
+
+export const deleteCategory = async (req: Request, res: Response) => {
+  // The id of the category to be deleted.
+  const categoryId: string = req.body.categoryId;
+  let category: IImageCategory | null;
+
+  try {
+    category = await ImageCategory.findByIdAndDelete(categoryId);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch the category from the database.",
+    });
+  }
+
+  if (!category) {
+    return res.status(404).json({
+      message: "No category by the given id was found.",
+    });
+  }
+
+  res.status(200).json({
+    message: "Category deleted successfully.",
   });
 };
 
