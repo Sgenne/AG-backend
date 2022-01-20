@@ -40,17 +40,21 @@ export const deleteCategory = async (req: Request, res: Response) => {
 
   try {
     category = await ImageCategory.findByIdAndDelete(categoryId);
+
+    if (!category) {
+      return res.status(404).json({
+        message: "No category by the given id was found.",
+      });
+    }
+
+    await Promise.all([Image.deleteMany({ category: category.title.toLowerCase() })])
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch the category from the database.",
     });
   }
 
-  if (!category) {
-    return res.status(404).json({
-      message: "No category by the given id was found.",
-    });
-  }
+
 
   res.status(200).json({
     message: "Category deleted successfully.",
@@ -131,6 +135,19 @@ export const handleUploadedImage = async (req: Request, res: Response) => {
     _GALLERY_IMAGE_FOLDER_PATH,
     originalName
   );
+
+  // Check if an image with the given filename already exists.
+  // If yes, then return 403
+  try {
+    const existingImage = await Image.findOne({ filename: originalName });
+    if (existingImage) {
+      return res.status(403).json({
+        message: "An image with the given filename already exists."
+      })
+    }
+  } catch (error) {
+    return res.status(500).json({ message: "Could not reach database." })
+  }
 
   try {
     await sharp(req.file.buffer)

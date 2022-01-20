@@ -5,7 +5,7 @@ export interface IScrollingImage {
   image: Types.ObjectId | IImage;
 }
 
-export interface IScrollingImageDocument extends IScrollingImage, Document {}
+export interface IScrollingImageDocument extends IScrollingImage, Document { }
 
 const scrollingImageSchema = new Schema({
   // The image which will be shown.
