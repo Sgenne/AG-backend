@@ -1,4 +1,4 @@
-import { Response, Request, NextFunction } from "express";
+import { Response, Request } from "express";
 
 import { BlogPost, IBlogPost } from "../../models/blogPost";
 
@@ -41,11 +41,7 @@ const _fetchBlogPosts = async (): Promise<{
 };
 
 // get latest blog posts
-export const getBlogPosts = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getBlogPosts = async (req: Request, res: Response) => {
   let blogPosts: IBlogPost[];
   let availableMonths: MonthAndYear[];
 
@@ -58,8 +54,9 @@ export const getBlogPosts = async (
     blogPosts = result.blogPosts;
     availableMonths = result.availableMonths;
   } catch (error) {
-    res.status(500);
-    return next(error);
+    return res.status(500).json({
+      message: "Could not fetch blog posts from database.",
+    });
   }
 
   // number of posts to return (returns all if none has been specified)
@@ -67,11 +64,9 @@ export const getBlogPosts = async (
 
   // check if provided value is a not a number
   if (isNaN(+numberOfPosts)) {
-    const error = new Error(
-      "The provided number of posts to load was invalid."
-    );
-    res.status(400);
-    return next(error);
+    return res.status(400).json({
+      message: "The provided number of posts to load was invalid.",
+    });
   }
 
   // If latest date was provided, remove posts from after the specified date.
@@ -81,9 +76,9 @@ export const getBlogPosts = async (
       typeof latestDateParam !== "string" ||
       isNaN(Date.parse(latestDateParam))
     ) {
-      const error = new Error("The provided latest date was invalid.");
-      res.status(400);
-      return next(error);
+      return res
+        .status(400)
+        .json({ message: "The provided latest date was invalid." });
     }
 
     const latestDate: number = new Date(latestDateParam).getTime();
@@ -106,11 +101,7 @@ export const getBlogPosts = async (
 };
 
 // returns all blog posts from the specified month
-export const getBlogPostsByMonth = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const getBlogPostsByMonth = async (req: Request, res: Response) => {
   let blogPosts: IBlogPost[];
   let availableMonths: MonthAndYear[];
 
@@ -119,11 +110,10 @@ export const getBlogPostsByMonth = async (
 
   // check if given month is valid
   if (isNaN(month) || month < 0 || month >= 12) {
-    const error = new Error(
-      "An invalid month was given. The month should be a number between 0 (inclusive) and 12 (exclusive)."
-    );
-    res.status(400);
-    return next(error);
+    return res.status(400).json({
+      message:
+        "An invalid month was given. The month should be a number between 0 (inclusive) and 12 (exclusive).",
+    });
   }
 
   try {
@@ -131,8 +121,9 @@ export const getBlogPostsByMonth = async (
     blogPosts = result.blogPosts;
     availableMonths = result.availableMonths;
   } catch (error) {
-    res.status(500);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "Could not fetch blog posts from database." });
   }
 
   // remove posts that are not from the specified month and year

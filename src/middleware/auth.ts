@@ -13,12 +13,10 @@ export const authenticateUser = async (
   let user: IUser | null;
 
   if (!(userId && accessToken)) {
-    const error = new Error(
-      `Please provide a valid user-id and access token. 
-      Provide the user id under header "userId", and the access-token under header "Authorization" as "Bearer: <token>".`
-    );
-    res.status(401);
-    return next(error);
+    return res.status(401).json({
+      message: `Please provide a valid user-id and access token. 
+    Provide the user id under header "userId", and the access-token under header "Authorization" as "Bearer: <token>".`,
+    });
   }
 
   accessToken = accessToken.split(" ")[1];
@@ -26,28 +24,24 @@ export const authenticateUser = async (
   try {
     user = await User.findById(userId);
   } catch (e) {
-    const error = new Error("An error occured while finding the user.");
-    res.status(500);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "An error occured while finding the user." });
   }
 
   if (!user) {
-    const error = new Error("No user with the provided user-id was found.");
-    res.status(404);
-    return next(error);
+    return res
+      .status(404)
+      .json({ message: "No user with the provided user-id was found." });
   }
 
   if (!process.env.TOKEN_SECRET) {
-    const error = new Error("Could not verify access-token.");
-    res.status(500);
-    return next(error);
+    return res.status(500).json({ message: "Could not verify access-token." });
   }
 
   jwt.verify(accessToken, process.env.TOKEN_SECRET, (err) => {
     if (err) {
-      const error = new Error("Invalid access-token.");
-      res.status(400);
-      return next(error);
+      return res.status(400).json({ message: "Invalid access-token." });
     }
 
     next();

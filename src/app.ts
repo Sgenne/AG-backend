@@ -13,7 +13,7 @@ import adminRoutes from "./routes/admin";
 import blogRoutes from "./routes/blog";
 import authRoutes from "./routes/auth";
 
-import { handle404, handleErrors } from "./middleware/handleErrors";
+import { handle404 } from "./middleware/handleErrors";
 
 dotenv.config();
 
@@ -30,7 +30,6 @@ app.use("/admin", authenticateUser, adminRoutes);
 app.use("/auth", authRoutes);
 
 app.use(handle404);
-app.use(handleErrors);
 
 mongoose.connect(process.env.DB_URI ? process.env.DB_URI : "8080").then(() => {
   app.listen(process.env.PORT);

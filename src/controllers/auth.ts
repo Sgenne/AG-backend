@@ -1,20 +1,18 @@
-import { Response, Request, NextFunction } from "express";
+import { Response, Request } from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
 import { User } from "../models/user";
 
-const registerUser = async (req: Request, res: Response, next: NextFunction) => {
+const registerUser = async (req: Request, res: Response) => {
   const name = req.body.name;
   const email = req.body.email.toLowerCase();
   const password = req.body.password;
 
   if (!(name && email && password)) {
-    const error = new Error(
-      "Please provide a valid name, email, and password."
-    );
-    res.status(400);
-    return next(error);
+    return res
+      .status(400)
+      .json({ message: "Please provide a valid name, email, and password." });
   }
 
   const existingUser = await User.findOne({
@@ -22,17 +20,14 @@ const registerUser = async (req: Request, res: Response, next: NextFunction) => 
   });
 
   if (existingUser) {
-    const error = new Error(
-      "A user with that email already exists. Please choose another email."
-    );
-    res.status(400);
-    return next(error);
+    return res.status(400).json({
+      message:
+        "A user with that email already exists. Please choose another email.",
+    });
   }
 
   if (!process.env.TOKEN_SECRET) {
-    const error = new Error("Could not generate access token");
-    res.status(500);
-    return next(error);
+    return res.status(500).json({ message: "Could not generate access token" });
   }
 
   const salt = await bcrypt.genSalt();
@@ -47,10 +42,9 @@ const registerUser = async (req: Request, res: Response, next: NextFunction) => 
   try {
     await user.save();
   } catch (e) {
-    console.trace(e);
-    const error = new Error("Something went wrong while creating user.");
-    res.status(500);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "Something went wrong while creating user." });
   }
 
   const token = _generateToken(user, process.env.TOKEN_SECRET);
@@ -62,15 +56,15 @@ const registerUser = async (req: Request, res: Response, next: NextFunction) => 
   });
 };
 
-const signIn = async (req: Request, res: Response, next: NextFunction) => {
+const signIn = async (req: Request, res: Response) => {
   const email = req.body.email;
   const password = req.body.password;
   let user;
 
   if (!(email && password)) {
-    const error = new Error("Please provide a valid email and password.");
-    res.status(400);
-    return next(error);
+    res
+      .status(400)
+      .json({ message: "Please provide a valid email and password." });
   }
 
   try {
@@ -78,32 +72,25 @@ const signIn = async (req: Request, res: Response, next: NextFunction) => {
       email: email.toLowerCase(),
     });
   } catch (e) {
-    console.trace(e);
-    const error = new Error("Something went wrong while signing in.");
-    res.status(500);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "Something went wrong while signing in." });
   }
 
   if (!user) {
-    console.trace("invalid email");
-    const error = new Error("Invalid email or password.");
-    res.status(400);
-    return next(error);
+    return res.status(400).json({ message: "Invalid email or password." });
   }
 
   const passwordIsValid = await bcrypt.compare(password, user.passwordHash);
 
   if (!passwordIsValid) {
-    console.trace("invalid password");
-    const error = new Error("Invalid email or password.");
-    res.status(400);
-    return next(error);
+    return res.status(400).json({ message: "Invalid email or password." });
   }
 
   if (!process.env.TOKEN_SECRET) {
-    const error = new Error("Could not generate access token.");
-    res.status(500);
-    return next(error);
+    return res
+      .status(500)
+      .json({ message: "Could not generate access token." });
   }
 
   // access-token used for jwt-authentication

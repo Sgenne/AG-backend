@@ -36,10 +36,9 @@ export const createCategory = async (req: Request, res: Response) => {
 export const deleteCategory = async (req: Request, res: Response) => {
   // The id of the category to be deleted.
   const categoryId: string = req.body.categoryId;
-  let category: IImageCategory | null;
 
   try {
-    category = await ImageCategory.findByIdAndDelete(categoryId);
+    const category: IImageCategory | null = await ImageCategory.findByIdAndDelete(categoryId);
 
     if (!category) {
       return res.status(404).json({
@@ -53,8 +52,6 @@ export const deleteCategory = async (req: Request, res: Response) => {
       message: "Failed to fetch the category from the database.",
     });
   }
-
-
 
   res.status(200).json({
     message: "Category deleted successfully.",

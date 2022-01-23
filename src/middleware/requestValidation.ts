@@ -12,9 +12,7 @@ const _handleValidationResult = (
 
   // If an error occured, then return error message
   // with status 400.
-  const error = new Error(errors.array()[0].msg);
-  res.status(400);
-  next(error);
+  return res.status(400).json({ message: errors.array()[0].msg });
 };
 
 export const validateCreateImageCategory = [
@@ -45,25 +43,19 @@ export const validateUploadImage = (
   next: NextFunction
 ) => {
   if (!req.file) {
-    const error = new Error(
-      "Something went wrong. The image could not be uploaded."
-    );
-    res.status(500);
-    return next(error);
+    return res.status(500).json({
+      message: "Something went wrong. The image could not be uploaded.",
+    });
   }
 
   if (!req.body.category) {
-    const error = new Error("No category was provided");
-    res.status(400);
-    return next(error);
+    return res.status(400).json({ message: "No category was provided" });
   }
 
   if (
     !(req.file.mimetype === "image/jpg" || req.file.mimetype === "image/jpeg")
   ) {
-    const error = new Error("Invalid image format.");
-    res.status(400);
-    return next(error);
+    return res.status(400).json({ message: "Invalid image format." });
   }
 
   next();
