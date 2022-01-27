@@ -3,13 +3,16 @@ import { Request, Response } from "express";
 import sharp from "sharp";
 import fs from "fs";
 
-import { IImage, IImageDocument, Image } from "../../models/image";
+import { IImageDocument, Image } from "../../models/image";
 import {
   ImageCategory,
   IImageCategoryDocument,
-  IImageCategory,
 } from "../../models/imageCategory";
-import { IScrollingImage, ScrollingImage } from "../../models/scrollingImage";
+import { IImage } from "../../interfaces/image.interface";
+import { IImageCategory } from "../../interfaces/imageCategory.interface";
+
+import { ScrollingImage } from "../../models/scrollingImage";
+import { IScrollingImage } from "../../interfaces/scrollingImage.interface";
 
 const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
 const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
@@ -38,7 +41,8 @@ export const deleteCategory = async (req: Request, res: Response) => {
   const categoryId: string = req.body.categoryId;
 
   try {
-    const category: IImageCategory | null = await ImageCategory.findByIdAndDelete(categoryId);
+    const category: IImageCategory | null =
+      await ImageCategory.findByIdAndDelete(categoryId);
 
     if (!category) {
       return res.status(404).json({
@@ -46,7 +50,9 @@ export const deleteCategory = async (req: Request, res: Response) => {
       });
     }
 
-    await Promise.all([Image.deleteMany({ category: category.title.toLowerCase() })])
+    await Promise.all([
+      Image.deleteMany({ category: category.title.toLowerCase() }),
+    ]);
   } catch (error) {
     return res.status(500).json({
       message: "Failed to fetch the category from the database.",
@@ -139,11 +145,11 @@ export const handleUploadedImage = async (req: Request, res: Response) => {
     const existingImage = await Image.findOne({ filename: originalName });
     if (existingImage) {
       return res.status(403).json({
-        message: "An image with the given filename already exists."
-      })
+        message: "An image with the given filename already exists.",
+      });
     }
   } catch (error) {
-    return res.status(500).json({ message: "Could not reach database." })
+    return res.status(500).json({ message: "Could not reach database." });
   }
 
   try {
@@ -160,7 +166,7 @@ export const handleUploadedImage = async (req: Request, res: Response) => {
   const relativeImagePath = `${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`;
   const relativeCompressedImagePath = `${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`;
 
-  const image = new Image({
+  const image: IImageDocument = new Image({
     filename: originalName,
     imageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeImagePath}`,
     compressedImageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeCompressedImagePath}`,

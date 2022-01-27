@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 
-import { BlogPost, IBlogPost } from "../../models/blogPost";
+import { BlogPost } from "../../models/blogPost";
+import { IBlogPost } from "../../interfaces/blogPost.interface";
 
 export const createPost = async (req: Request, res: Response) => {
   const title = req.body.title;

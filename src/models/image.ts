@@ -1,18 +1,11 @@
 import { Schema, model, Document } from "mongoose";
 import path from "path";
 import fs from "fs";
+import { IImage } from "../interfaces/image.interface";
 
-export interface IImage {
-  filename: string;
-  imageUrl: string;
-  compressedImageUrl: string;
-  category: string;
-  relativeImagePath: string;
-  relativeCompressedImagePath: string;
+export interface IImageDocument extends IImage, Document {
   unlink: () => Promise<[void, void]>;
 }
-
-export interface IImageDocument extends IImage, Document {}
 
 const imageSchema = new Schema(
   {
@@ -50,6 +43,7 @@ const imageSchema = new Schema(
 );
 
 // Delete image and compressed image from file system.
+// %%%%%    Should be in service.    %%%%%%
 imageSchema.methods.unlink = function () {
   return Promise.all([
     fs.promises.unlink(path.join(this.relativeImagePath)),
@@ -57,4 +51,4 @@ imageSchema.methods.unlink = function () {
   ]);
 };
 
-export const Image = model<IImage>("Image", imageSchema);
+export const Image = model<IImageDocument>("Image", imageSchema);

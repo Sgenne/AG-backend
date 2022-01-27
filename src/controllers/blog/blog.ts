@@ -1,6 +1,7 @@
 import { Response, Request } from "express";
 
-import { BlogPost, IBlogPost } from "../../models/blogPost";
+import { BlogPost } from "../../models/blogPost";
+import { IBlogPost } from "../../interfaces/blogPost.interface";
 
 interface MonthAndYear {
   month: number;
@@ -137,5 +138,30 @@ export const getBlogPostsByMonth = async (req: Request, res: Response) => {
     message: "Blog posts fetched succesfully.",
     blogPosts: blogPosts,
     availableMonths: availableMonths,
+  });
+};
+
+export const getBlogPostById = async (req: Request, res: Response) => {
+  const postId: string = req.params.postId;
+
+  let post: IBlogPost | null;
+
+  try {
+    post = await BlogPost.findById(postId);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Could not fetch blog post from backend." });
+  }
+
+  if (!post) {
+    return res
+      .status(404)
+      .json({ message: "No blog post with the given id was found." });
+  }
+
+  res.status(200).json({
+    message: "Blog post fetched successfully.",
+    blogPost: post,
   });
 };

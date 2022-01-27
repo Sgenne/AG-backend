@@ -1,10 +1,6 @@
 import { Schema, model } from "mongoose";
 
-export interface IBlogPost {
-  title: string;
-  content: string;
-  createdAt: Date;
-}
+import { IBlogPost } from "../interfaces/blogPost.interface";
 
 const blogPostSchema = new Schema(
   {

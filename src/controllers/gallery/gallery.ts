@@ -3,8 +3,8 @@ import { Request, Response } from "express";
 import { Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
-import { IImage } from "../../models/image";
-import { IImageCategory } from "../../models/imageCategory";
+import { IImage } from "../../interfaces/image.interface";
+import { IImageCategory } from "../../interfaces/imageCategory.interface";
 
 const _fetchImages = (
   imageQuery = {}

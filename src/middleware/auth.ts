@@ -1,7 +1,8 @@
 import { Response, Request, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-import { User, IUser } from "../models/user";
+import { User } from "../models/user";
+import { IUser } from "../interfaces/user.interface";
 
 export const authenticateUser = async (
   req: Request,
