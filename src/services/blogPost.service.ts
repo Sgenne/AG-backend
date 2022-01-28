@@ -18,17 +18,18 @@ const fetchBlogPosts = async () => {
 };
 
 const getAvailableMonths = (blogPosts: IBlogPost[]) => {
-  const availableMonths: { [key: number]: MonthAndYear } = {};
+  const availableMonths: MonthAndYear[] = [];
 
   // iterate over blogPosts and collect all months
   blogPosts.forEach((post) => {
     const month = post.createdAt.getMonth();
     const year = post.createdAt.getFullYear();
 
-    availableMonths[-year - month] = {
-      month: month,
-      year: year,
-    };
+    // Check if an identical MonthAndYear exists before adding to list.
+    if (
+      !availableMonths.some((avm) => avm.month === month && avm.year === year)
+    )
+      availableMonths.push({ month: month, year: year });
   });
 
   const availableMonthsList = Object.values(availableMonths) as MonthAndYear[];
