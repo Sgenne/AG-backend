@@ -1,19 +1,16 @@
-import * as mongoose from "mongoose";
+import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";
 
 const db = new MongoMemoryServer();
 
 export const connect = async () => {
-  console.log("connect")
+  await db.start();
   let uri;
   try {
-    uri = await db.getUri();
+    uri = db.getUri();
   } catch (error) {
-    console.log(error);
     return;
   }
-
-  console.log("uri: ", uri);
 
   if (!uri) {
     throw new Error("uri not set.");

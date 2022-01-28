@@ -48,6 +48,7 @@
     },
     "transformIgnorePatterns": [
       "node_modules/(?!variables/.*)"
-    ]
+    ],
+    "modulePathIgnorePatterns": ["./dist"]
   }
 }

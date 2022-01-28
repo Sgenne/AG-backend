@@ -2,7 +2,7 @@ import { BlogPost } from "../../models/blogPost";
 import * as db from "../../testSetup/mockDB";
 
 const generateBlogPosts = async () => {
-  const numberOfPosts = Math.floor(Math.random() * 100) + 1;
+  const numberOfPosts = 1; //Math.floor(Math.random() * 100) + 1;
 
   for (let i = 0; i < numberOfPosts; i++) {
     const month = Math.floor(Math.random() * 12);
@@ -35,6 +35,6 @@ afterEach(async () => await db.clear());
 
 afterAll(async () => await db.close());
 
-test("test runst", () => {
+test("test runs", () => {
   expect(1 + 1).toBe(2);
 });
