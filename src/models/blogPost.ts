@@ -12,8 +12,12 @@ const blogPostSchema = new Schema(
       type: String,
       required: true,
     },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
-  { timestamps: true }
+  { timestamps: { createdAt: false, updatedAt: true } }
 );
 
 export const BlogPost = model<IBlogPost>("BlogPost", blogPostSchema);
