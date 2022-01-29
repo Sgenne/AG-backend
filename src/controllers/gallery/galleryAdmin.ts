@@ -1,16 +1,8 @@
 import { Request, Response } from "express";
 
-import {
-  ImageCategory,
-  IImageCategoryDocument,
-} from "../../models/imageCategory";
-import { IImage } from "../../interfaces/image.interface";
-import { IImageCategory } from "../../interfaces/imageCategory.interface";
-
-import { ScrollingImage } from "../../models/scrollingImage";
-import { IScrollingImage } from "../../interfaces/scrollingImage.interface";
 import * as imageServices from "../../services/image.service";
 import * as imageCategoryServices from "../../services/imageCategory.service";
+import * as scrollingImageServices from "../../services/scrollingImage.service";
 import { RESOURCE_ALREADY_EXISTS, RESOURCE_NOT_FOUND } from "../../services";
 
 export const createCategory = async (req: Request, res: Response) => {
@@ -129,76 +121,26 @@ export const deleteImage = async (req: Request, res: Response) => {
   });
 };
 
-export const deleteScrollingImage = async (req: Request, res: Response) => {
-  const scrollingImageId = req.body["scrolling-image-id"];
-
-  const deletedScrollingImage: IScrollingImage | null =
-    await ScrollingImage.findByIdAndDelete(scrollingImageId);
-
-  // If no scrolling image with the given id could be found, then
-  // return an error message.
-  if (!deletedScrollingImage) {
-    return res
-      .status(404)
-      .json({ message: "No scrolling image with the given id was found." });
-  }
-
-  res.status(200).json({
-    message: "Image deleted successfully.",
-  });
-};
-
-// Gets a list of the new scrolling image ids from the request body,
-// and replaces the previous scrolling images. If any of the new
-// scrolling images is not found, then the old scrolling images
-// will remain.
 export const replaceScrollingImages = async (req: Request, res: Response) => {
   // The ids of the images that will replace the current scrolling images,
   // in the order of appearance.
   const newScrollingImageIds: string[] = req.body.newScrollingImageIds;
-  let newScrollingImages: ({} | null)[];
 
-  try {
-    // Fetch the new scrolling images from DB.
-    newScrollingImages = await Promise.all(
-      newScrollingImageIds.map((id) => Image.findById(id))
-    );
-  } catch (err) {
-    return res.status(500).json({
-      message:
-        "The new scrolling images could not be fetched from the database.",
-    });
+  const result = await scrollingImageServices.replaceScrollingImages(
+    newScrollingImageIds
+  );
+
+  if (!result.success) {
+    if (result.message === RESOURCE_NOT_FOUND) {
+      return res.status(404).json({ message: "Image not found" });
+    }
+    return res
+      .status(500)
+      .json({ message: "Scrolling image could not be replaced." });
   }
 
-  // If any of the images were not found, return 404.
-  if (newScrollingImages.some((image) => image === null)) {
-    return res.status(404).json({
-      message: "An image with the given image id could not be found.",
-    });
-  }
-
-  // Create a function for each new scrolling image which produces the
-  // new ScrollingImage object.
-  const newScrollingImageFunctions: (() => Promise<void>)[] =
-    newScrollingImages.map((image, index) => async () => {
-      const newScrollingImage = new ScrollingImage({
-        image: image,
-        order: index,
-      });
-      await newScrollingImage.save();
-    });
-
-  try {
-    // Delete previous scrolling images.
-    await ScrollingImage.deleteMany();
-
-    // Create new ScrollingImage objects.
-    await Promise.all(newScrollingImageFunctions.map((func) => func()));
-  } catch (err) {
-    return res.status(500).json({
-      message: "Could not update database with new scrolling images.",
-    });
-  }
-
-  res.status(200).json({ message: "Scrolling images succesfully replaced." });
+  res.status(200).json({
+    message: "Scrolling images succesfully replaced.",
+    scrollingImages: result.scrollingImages,
+  });
 };
