@@ -3,9 +3,7 @@ import path from "path";
 import fs from "fs";
 import { IImage } from "../interfaces/image.interface";
 
-export interface IImageDocument extends IImage, Document {
-  unlink: () => Promise<[void, void]>;
-}
+export interface IImageDocument extends IImage, Document {}
 
 const imageSchema = new Schema(
   {
@@ -41,14 +39,5 @@ const imageSchema = new Schema(
   },
   { timestamps: true }
 );
-
-// Delete image and compressed image from file system.
-// %%%%%    Should be in service.    %%%%%%
-imageSchema.methods.unlink = function () {
-  return Promise.all([
-    fs.promises.unlink(path.join(this.relativeImagePath)),
-    fs.promises.unlink(path.join(this.relativeCompressedImagePath)),
-  ]);
-};
 
 export const Image = model<IImageDocument>("Image", imageSchema);

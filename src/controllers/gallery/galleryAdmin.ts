@@ -1,9 +1,5 @@
-import path from "path";
 import { Request, Response } from "express";
-import sharp from "sharp";
-import fs from "fs";
 
-import { IImageDocument, Image } from "../../models/image";
 import {
   ImageCategory,
   IImageCategoryDocument,
@@ -13,26 +9,29 @@ import { IImageCategory } from "../../interfaces/imageCategory.interface";
 
 import { ScrollingImage } from "../../models/scrollingImage";
 import { IScrollingImage } from "../../interfaces/scrollingImage.interface";
-
-const _ROOT_FOLDER_PATH = path.join(__dirname, "../../../");
-const _GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
-const _COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
+import * as imageServices from "../../services/image.service";
+import * as imageCategoryServices from "../../services/imageCategory.service";
+import { RESOURCE_ALREADY_EXISTS, RESOURCE_NOT_FOUND } from "../../services";
 
 export const createCategory = async (req: Request, res: Response) => {
   const categoryTitle = req.body.categoryTitle;
 
-  const category = new ImageCategory({
-    title: categoryTitle,
-  });
+  const result = await imageCategoryServices.createImageCategory(categoryTitle);
 
-  try {
-    await category.save();
-  } catch (e) {
-    return res.status(500).json({ message: "Could not create category" });
+  if (!result.category) {
+    if (result.message === RESOURCE_ALREADY_EXISTS) {
+      return res
+        .status(403)
+        .json({ message: "A category with the given title already exists." });
+    }
+    return res
+      .status(500)
+      .json({ message: "The image category could not be created." });
   }
+
   res.status(201).json({
-    message: "Category created successfully.",
-    category: category,
+    message: "The image category was successfully created.",
+    category: result.category,
   });
 };
 
@@ -40,23 +39,15 @@ export const deleteCategory = async (req: Request, res: Response) => {
   // The id of the category to be deleted.
   const categoryId: string = req.body.categoryId;
 
-  try {
-    const category: IImageCategory | null =
-      await ImageCategory.findByIdAndDelete(categoryId);
+  const result = await imageCategoryServices.deleteImageCategory(categoryId);
 
-    if (!category) {
-      return res.status(404).json({
-        message: "No category by the given id was found.",
-      });
+  if (!result.success) {
+    if (result.message === RESOURCE_NOT_FOUND) {
+      return res.status(404).json({ message: "No such image category exists" });
     }
-
-    await Promise.all([
-      Image.deleteMany({ category: category.title.toLowerCase() }),
-    ]);
-  } catch (error) {
-    return res.status(500).json({
-      message: "Failed to fetch the category from the database.",
-    });
+    return res
+      .status(500)
+      .json({ message: "The image category could not be deleted." });
   }
 
   res.status(200).json({
@@ -68,51 +59,26 @@ export const setImageCategoryPreviewImage = async (
   req: Request,
   res: Response
 ) => {
-  // Id of the new preview image.
   const previewImageId = req.body.previewImageId;
-  let previewImage: IImage | null;
-
-  // Id of the image category that should received the new preview image.
   const categoryId = req.body.categoryId;
-  let category: IImageCategoryDocument | null;
 
-  // Fetch preview image and image category from DB using the given ids.
-  try {
-    [previewImage, category] = await Promise.all([
-      Image.findById(previewImageId),
-      ImageCategory.findById(categoryId),
-    ]);
-  } catch (err) {
+  const result = await imageCategoryServices.setCategoryPreviewImage(
+    previewImageId,
+    categoryId
+  );
+
+  if (!result.success) {
+    if (result.message === RESOURCE_NOT_FOUND) {
+      return res.status(404).json({ message: "Resource could not be found" });
+    }
     return res
       .status(500)
-      .json({ message: "Could not get the required data from the database." });
-  }
-
-  if (!category) {
-    return res
-      .status(404)
-      .json({ message: "No image category with the given id could be found." });
-  }
-
-  if (!previewImage) {
-    return res
-      .status(404)
-      .json({ message: "No image with the given id could be found." });
-  }
-
-  category.previewImage = previewImage;
-
-  try {
-    await category.save();
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "The category could not be updated" });
+      .json({ message: "The image category could not be updated." });
   }
 
   res.status(200).json({
     message: "Category preview image updated successfully.",
-    category: category,
+    category: result.category,
   });
 };
 
@@ -126,126 +92,40 @@ export const handleUploadedImage = async (req: Request, res: Response) => {
     });
   }
 
-  const originalName = req.file.originalname;
-  const compressedImageName = "(compressed)" + originalName;
-  const compressedImagePath = path.join(
-    _ROOT_FOLDER_PATH,
-    _COMPRESSED_IMAGE_FOLDER_PATH,
-    compressedImageName
-  );
-  const imagePath = path.join(
-    _ROOT_FOLDER_PATH,
-    _GALLERY_IMAGE_FOLDER_PATH,
-    originalName
-  );
+  const result = await imageServices.storeImage(req.file, category);
 
-  // Check if an image with the given filename already exists.
-  // If yes, then return 403
-  try {
-    const existingImage = await Image.findOne({ filename: originalName });
-    if (existingImage) {
-      return res.status(403).json({
-        message: "An image with the given filename already exists.",
-      });
-    }
-  } catch (error) {
-    return res.status(500).json({ message: "Could not reach database." });
-  }
-
-  try {
-    await sharp(req.file.buffer)
-      .resize(600, 600)
-      .toFormat("jpg")
-      .toFile(compressedImagePath);
-
-    fs.writeFileSync(imagePath, req.file.buffer);
-  } catch (err) {
-    return res.status(500).json({ message: "Could not upload image." });
-  }
-
-  const relativeImagePath = `${_GALLERY_IMAGE_FOLDER_PATH}/${originalName}`;
-  const relativeCompressedImagePath = `${_COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`;
-
-  const image: IImageDocument = new Image({
-    filename: originalName,
-    imageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeImagePath}`,
-    compressedImageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeCompressedImagePath}`,
-    relativeImagePath: relativeImagePath,
-    relativeCompressedImagePath: relativeCompressedImagePath,
-    category: category.toLowerCase(),
-  });
-
-  try {
-    await image.save();
-  } catch (err) {
-    console.trace(err);
-    await image.unlink();
-    return res.status(500).json({ message: "Could not update database." });
+  if (!result.success) {
+    return res.status(500).json({
+      message: "Something went wrong. The image could not be uploaded.",
+    });
   }
 
   res.status(200).json({
     message: "Image uploaded successfully.",
-    image: image,
+    image: result.image,
   });
 };
 
 export const deleteImage = async (req: Request, res: Response) => {
   const imageId: string = req.body.imageId;
-  let image: IImageDocument | null;
 
-  try {
-    image = await Image.findById(imageId);
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "Something went wrong while deleting the image." });
-  }
+  const result = await imageServices.deleteImage(imageId);
 
-  if (!image) {
-    return res
-      .status(404)
-      .json({ message: "No image with the given image-id was found." });
-  }
-
-  try {
-    await image.unlink();
-  } catch (err) {
-    return res.status(500).json({
-      message: "The image could not be deleted from the file system.",
-    });
-  }
-
-  try {
-    await image.delete();
-  } catch (err) {
-    return res.status(500).json({
-      message:
-        "The image was deleted from the file system, but could not be deleted from the database.",
-    });
+  if (!result.success) {
+    if (result.message === RESOURCE_NOT_FOUND) {
+      return res.status(404).json({
+        message: "No image with the given id could be found.",
+      });
+    } else {
+      return res.status(500).json({
+        message: "The image could not be deleted.",
+      });
+    }
   }
 
   res.status(200).json({
-    message: "Image deleted successfully.",
-  });
-};
-
-export const addScrollingImage = async (req: Request, res: Response) => {
-  const scrollingImageId = req.body["scrolling-image-id"];
-
-  const newScrollingImage = new ScrollingImage({
-    image: scrollingImageId,
-  });
-
-  try {
-    await newScrollingImage.save();
-  } catch (err) {
-    return res.status(500).json({
-      message: "Something went wrong while adding the new scrolling image.",
-    });
-  }
-
-  res.status(200).json({
-    message: "Scrolling image added successfully.",
+    message: "The image was deleted successfully.",
+    image: result.image,
   });
 };
 

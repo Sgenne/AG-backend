@@ -1,60 +1,68 @@
 import { Request, Response } from "express";
 
-import { Image } from "../../models/image";
 import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
-import { IImage } from "../../interfaces/image.interface";
-import { IImageCategory } from "../../interfaces/imageCategory.interface";
-
-const _fetchImages = (
-  imageQuery = {}
-): Promise<[IImage[], IImageCategory[]]> => {
-  return Promise.all([Image.find(imageQuery), ImageCategory.find()]);
-};
+import * as imageServices from "../../services/image.service";
+import * as imageCategoryServices from "../../services/imageCategory.service";
 
 export const getImages = async (req: Request, res: Response) => {
-  try {
-    const [images, categories] = await _fetchImages();
-    res.json({
-      message: "Successfully fetched images.",
-      images: images,
-      categories: categories,
-    });
-  } catch (err) {
+  const [imageResult, categoryResult] = await Promise.all([
+    imageServices.getImages(),
+    imageCategoryServices.getImageCategories(),
+  ]);
+
+  if (!(imageResult.success && categoryResult.success)) {
     return res
       .status(500)
       .json({ message: "Could not fetch images from database." });
   }
+
+  res.json({
+    message: "Successfully fetched images.",
+    images: imageResult.images,
+    categories: categoryResult.categories,
+  });
 };
 
 export const getImagesByCategory = async (req: Request, res: Response) => {
   const category = req.params.category;
-  try {
-    const [categoryImages, categories]: [IImage[], IImageCategory[]] =
-      await _fetchImages({ category: category });
-    res.status(200).json({
-      message: "Successfully fetched images.",
-      images: categoryImages,
-      categories: categories,
-    });
-  } catch (err) {
+
+  const [imageResult, categoryResult] = await Promise.all([
+    imageServices.getImagesByCategory(category),
+    imageCategoryServices.getImageCategories(),
+  ]);
+
+  if (!(imageResult.images && categoryResult.categories)) {
     return res
       .status(500)
       .json({ message: "Could not fetch images from database." });
   }
+
+  const categories = categoryResult.categories;
+
+  if (!categories.map((cat) => cat.title).includes(category)) {
+    return res.status(404).json({ message: "No such category exists." });
+  }
+
+  res.status(200).json({
+    message: "Successfully fetched images.",
+    images: imageResult.images,
+    categories: categories,
+  });
 };
 
 export const getImageById = async (req: Request, res: Response) => {
-  let image: IImage | null;
   const imageId = req.params.imageId;
 
-  try {
-    image = await Image.findById(imageId);
-  } catch (err) {
-    return res.status(500).json({ message: "Could not fetch the image." });
+  const result = await imageServices.getImageById(imageId);
+
+  if (!result.success) {
+    return res
+      .status(500)
+      .json({ message: "Could not fetch the image from the database" });
   }
 
-  if (!image) {
+  if (!result.image) {
     return res
       .status(404)
       .json({ message: "No image with the given image id exists." });
@@ -62,24 +70,23 @@ export const getImageById = async (req: Request, res: Response) => {
 
   res.status(200).json({
     message: "Image fetched succesfully.",
-    image: image,
+    image: result.image,
   });
 };
 
 export const getCategories = async (req: Request, res: Response) => {
-  let categories;
-  try {
-    categories = await ImageCategory.find().populate("previewImage");
-  } catch (err) {
-    return res
-      .status(500)
-      .json({ message: "Something went wrong while fetching categories." });
+  const result = await imageCategoryServices.getImageCategories();
+
+  if (!result.categories) {
+    return res.status(500).json({ message: "Could not fetch categories." });
   }
 
-  res.status(200).json({
-    message: "Categories fetched successfully.",
-    categories: categories,
-  });
+  res
+    .status(200)
+    .json({
+      message: "The categories were fetched successfully.",
+      categories: result.categories,
+    });
 };
 
 export const getScrollingImages = async (req: Request, res: Response) => {
