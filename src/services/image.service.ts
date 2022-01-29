@@ -7,7 +7,6 @@ import { IImage } from "../interfaces/image.interface";
 import {
   DATABASE_ERROR,
   FILE_SYSTEM_ERROR,
-  INVALID_ARGUMENT,
   RESOURCE_ALREADY_EXISTS,
   RESOURCE_NOT_FOUND,
 } from ".";

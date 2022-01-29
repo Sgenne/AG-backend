@@ -4,7 +4,7 @@ import * as db from "../../tests/mockDB";
 import { getBlogPosts } from "../blogPost.service";
 
 const generateBlogPosts = async () => {
-  const numberOfPosts = 4; //Math.floor(Math.random() * 100) + 1;
+  const numberOfPosts = Math.floor(Math.random() * 10) + 1;
 
   for (let i = 0; i < numberOfPosts; i++) {
     const month = Math.floor(Math.random() * 12);
@@ -89,11 +89,6 @@ describe("getBlogPosts", () => {
             avm.year === post.createdAt.getFullYear()
         )
       ) {
-        console.log(blogPosts);
-        console.log(post.createdAt);
-        console.log("month: ", post.createdAt.getMonth());
-        console.log("year: ", post.createdAt.getFullYear());
-        console.log(availableMonths);
         throw new Error();
       }
     });
@@ -101,3 +96,5 @@ describe("getBlogPosts", () => {
     return true;
   });
 });
+
+

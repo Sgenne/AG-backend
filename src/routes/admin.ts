@@ -17,8 +17,6 @@ import {
   createCategory,
   deleteCategory,
   handleUploadedImage,
-  addScrollingImage,
-  deleteScrollingImage,
   deleteImage,
   replaceScrollingImages,
   setImageCategoryPreviewImage,
@@ -53,16 +51,6 @@ router.post(
 
 router.delete("/gallery/delete-image", validateDeleteImage, deleteImage);
 
-router.post(
-  "/gallery/new-scrolling-image",
-  validateAddScrollingImage,
-  addScrollingImage
-);
-router.delete(
-  "/gallery/delete-scrolling-image",
-  validateDeleteScrollingImage,
-  deleteScrollingImage
-);
 router.post(
   "/gallery/replace-scrolling-images",
   validateReplaceScrollingImages,
