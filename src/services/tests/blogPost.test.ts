@@ -1,6 +1,6 @@
 import { IBlogPost } from "../../interfaces/blogPost.interface";
 import { BlogPost } from "../../models/blogPost";
-import * as db from "../../testSetup/mockDB";
+import * as db from "../../tests/mockDB";
 import { getBlogPosts } from "../blogPost.service";
 
 const generateBlogPosts = async () => {
@@ -34,18 +34,6 @@ beforeAll(async () => await db.connect());
 afterEach(async () => await db.clear());
 
 afterAll(async () => await db.close());
-
-test("getBlogPosts returns two empty lists if no blog posts exist.", async () => {
-  const { success, blogPosts, availableMonths } = await getBlogPosts();
-
-  expect(success).toBe(true);
-  expect(blogPosts).toBeTruthy();
-  expect(availableMonths).toBeTruthy();
-  if (!(blogPosts && availableMonths)) return;
-
-  expect(blogPosts).toHaveLength(0);
-  expect(availableMonths).toHaveLength(0);
-});
 
 describe("getBlogPosts", () => {
   it("returns two empty lists if no blog posts exist.", async () => {
