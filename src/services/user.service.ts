@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import {
   UNAUTHORIZED,
   DATABASE_ERROR,
-  INVALID_ARGUMENT,
   RESOURCE_ALREADY_EXISTS,
   RESOURCE_NOT_FOUND,
 } from ".";
@@ -119,8 +118,35 @@ export const signIn = async (
   return { success: true, user: user, accessToken: token };
 };
 
+/**
+ * Verifies that an access token is valid.
+ *
+ * @param accessToken The access token to be verified.
+ * @param secret The secret used when creating the access token.
+ */
+export const verifyAccessToken = async (
+  accessToken: string,
+  secret: string
+): Promise<ServiceResult> => {
+  let success: boolean = false;
+  let user: IUser | undefined;
+  let message: string | undefined;
+
+  await jwt.verify(accessToken, secret, (err, decoded) => {
+    if (err || !decoded) {
+      success = false;
+      message = UNAUTHORIZED;
+      return;
+    }
+
+    user = decoded.user;
+    success = true;
+  });
+  return { success: success, message: message, user: user };
+};
+
 const generateToken = (user: IUser, secret: string) => {
-  const token = jwt.sign({ email: user.email }, secret, {
+  const token = jwt.sign({ user: user }, secret, {
     expiresIn: "1h",
   });
   return token;

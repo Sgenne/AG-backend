@@ -1,8 +1,7 @@
 import { Response, Request, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 
-import { User } from "../models/user";
-import { IUser } from "../interfaces/user.interface";
+import * as userServices from "../services/user.service";
+import { UNAUTHORIZED } from "../services";
 
 export const authenticateUser = async (
   req: Request,
@@ -10,41 +9,33 @@ export const authenticateUser = async (
   next: NextFunction
 ) => {
   let accessToken = req.header("Authorization");
-  const userId = req.header("UserId");
-  let user: IUser | null;
 
-  if (!(userId && accessToken)) {
+  if (!accessToken) {
     return res.status(401).json({
-      message: `Please provide a valid user-id and access token. 
-    Provide the user id under header "userId", and the access-token under header "Authorization" as "Bearer: <token>".`,
+      message: `Please provide a valid access token under header "Authorization" as "Bearer: <token>".`,
     });
+  }
+
+  if (!process.env.TOKEN_SECRET) {
+    return res
+      .status(500)
+      .json({ message: "Could not verify the access token" });
   }
 
   accessToken = accessToken.split(" ")[1];
 
-  try {
-    user = await User.findById(userId);
-  } catch (e) {
+  const verificationResult = await userServices.verifyAccessToken(
+    accessToken,
+    process.env.TOKEN_SECRET
+  );
+
+  if (!verificationResult.user) {
+    if (verificationResult.message === UNAUTHORIZED) {
+      return res.status(401).json({ message: "Invalid access token." });
+    }
     return res
       .status(500)
-      .json({ message: "An error occured while finding the user." });
+      .json({ message: "Could not verify the access token." });
   }
-
-  if (!user) {
-    return res
-      .status(404)
-      .json({ message: "No user with the provided user-id was found." });
-  }
-
-  if (!process.env.TOKEN_SECRET) {
-    return res.status(500).json({ message: "Could not verify access-token." });
-  }
-
-  jwt.verify(accessToken, process.env.TOKEN_SECRET, (err) => {
-    if (err) {
-      return res.status(400).json({ message: "Invalid access-token." });
-    }
-
-    next();
-  });
+  next();
 };
