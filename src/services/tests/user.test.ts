@@ -1,6 +1,7 @@
-import { RESOURCE_ALREADY_EXISTS } from "..";
+import { RESOURCE_ALREADY_EXISTS, RESOURCE_NOT_FOUND, UNAUTHORIZED } from "..";
+import { UserDocument } from "../../models/user";
 import * as db from "../../tests/mockDB";
-import { registerUser } from "../user.service";
+import { registerUser, signIn, verifyAccessToken } from "../user.service";
 beforeAll(async () => await db.connect());
 
 afterEach(async () => await db.clear());
@@ -11,9 +12,25 @@ describe("registerUser", () => {
   it("fails if email is already taken", async () => {
     const email = "test@test.com";
 
-    await registerUser("ksdjfh", email, "skdjfhskdjfhk", "super secret secret");
+    const {
+      success: success0,
+      message: message0,
+      user: user0,
+      accessToken: accessToken0,
+    } = await registerUser(
+      "ksdjfh",
+      email,
+      "skdjfhskdjfhk",
+      "super secret secret"
+    );
 
-    const { success, message, user } = await registerUser(
+    if (!user0) throw new Error();
+    expect(success0).toBe(true);
+    expect(message0).toBeUndefined();
+    expect(user0.name && user0.email && user0.passwordHash).toBeTruthy();
+    expect(accessToken0).toBeDefined();
+
+    const { success, message, user, accessToken } = await registerUser(
       "ksdweoriuiasidu",
       email,
       "fkjhkjfdhkassd",
@@ -23,5 +40,70 @@ describe("registerUser", () => {
     expect(success).toBe(false);
     expect(message).toBe(RESOURCE_ALREADY_EXISTS);
     expect(user).toBeUndefined();
+    expect(accessToken).toBeUndefined();
+  });
+});
+
+describe("signIn", () => {
+  it("fails if no user with the given email exists", async () => {
+    const name = "name";
+    const password = "password";
+    const secret = "super secret secret";
+
+    await registerUser(name, "email@email.com", password, secret);
+
+    const { success, user, message, accessToken } = await signIn(
+      "emai@email.com",
+      password,
+      password
+    );
+
+    expect(success).toBe(false);
+    expect(user).toBeUndefined();
+    expect(message).toBe(RESOURCE_NOT_FOUND);
+    expect(accessToken).toBeUndefined();
+  });
+
+  it("fails if the given password is incorrect", async () => {
+    const name = "name";
+    const email = "email@email.com";
+    const secret = "super secret secret";
+
+    await registerUser(name, email, "password", secret);
+
+    const { success, message, user, accessToken } = await signIn(
+      email,
+      "pasword",
+      secret
+    );
+
+    expect(success).toBe(false);
+    expect(message).toBe(UNAUTHORIZED);
+    expect(user).toBeUndefined();
+    expect(accessToken).toBeUndefined();
+  });
+
+  it("returns a valid access token if successfull", async () => {
+    const email = "email@email.com";
+    const password = "password";
+    const secret = "super secret secret";
+
+    await registerUser("name", email, password, secret);
+
+    const { user, accessToken } = await signIn(email, password, secret);
+
+    if (!(user && accessToken)) throw new Error();
+
+    const {
+      success,
+      user: verifiedUser,
+      message,
+    } = await verifyAccessToken(accessToken, secret);
+
+    if (!verifiedUser) throw new Error();
+
+    expect(user.email).toBe(verifiedUser.email);
+    expect(success).toBe(true);
+    expect(message).toBeUndefined();
   });
 });
