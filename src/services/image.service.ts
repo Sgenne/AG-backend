@@ -77,18 +77,12 @@ export const getImagesByCategory = async (
 /**
  * Returns the image with the given image-id, if one exists.
  * @param imageId The image-id of the returned image.
- *
- * @returns {success: true, image} if the image with the
- * given image-id was returned successfully. Even if no image was found.
- *
- * @returns {success: false, message} if the image could not be returned
- * due to an error.
  */
 export const getImageById = async (
   imageId: string
 ): Promise<{
   success: boolean;
-  image?: IImage | null;
+  image?: IImage;
   message?: string;
 }> => {
   let image: IImage | null;
@@ -98,6 +92,9 @@ export const getImageById = async (
   } catch (error) {
     return { success: false, message: DATABASE_ERROR };
   }
+
+  if (!image) return { success: false, message: RESOURCE_NOT_FOUND };
+
   return { success: true, image: image };
 };
 

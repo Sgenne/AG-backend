@@ -7,7 +7,7 @@ import * as imageServices from "./image.service";
  * Represents the result of a requested service.
  *
  */
-interface serviceResult {
+interface ServiceResult {
   /**
    * Indicates if the service was performed successfully.
    */
@@ -24,9 +24,14 @@ interface serviceResult {
   scrollingImages?: IImage[];
 }
 
+/**
+ * Replaces the current scrolling images with the given list of images.
+ *
+ * @param newScrollingImageIds The images that will replace the current scrolling images.
+ */
 export const replaceScrollingImages = async (
   newScrollingImageIds: string[]
-): Promise<serviceResult> => {
+): Promise<ServiceResult> => {
   const fetchResults = await Promise.all(
     newScrollingImageIds.map((id) => imageServices.getImageById(id))
   );
@@ -65,4 +70,18 @@ export const replaceScrollingImages = async (
   }
 
   return { success: true, scrollingImages: newScrollingImages };
+};
+
+/**
+ * Returns the current scrolling images.
+ */
+export const getScrollingImages = async (): Promise<ServiceResult> => {
+  try {
+    const scrollingImages: IImage[] = await ScrollingImage.find().populate(
+      "image"
+    );
+    return { success: true, scrollingImages: scrollingImages };
+  } catch (error) {
+    return { success: false, message: DATABASE_ERROR };
+  }
 };

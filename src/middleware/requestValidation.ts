@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
 
-const _handleValidationResult = (
+const handleValidationResult = (
   req: Request,
   res: Response,
   next: NextFunction
@@ -10,8 +10,6 @@ const _handleValidationResult = (
 
   if (errors.isEmpty()) return next();
 
-  // If an error occured, then return error message
-  // with status 400.
   return res.status(400).json({ message: errors.array()[0].msg });
 };
 
@@ -19,14 +17,14 @@ export const validateCreateImageCategory = [
   body("categoryTitle")
     .isLength({ min: 3, max: 16 })
     .withMessage("No category title was provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateDeleteImageCategory = [
   body("categoryId")
     .exists()
     .withMessage("No category-id of the category to delete was provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateSetImageCategoryPreviewImage = [
@@ -34,7 +32,7 @@ export const validateSetImageCategoryPreviewImage = [
     .exists()
     .withMessage("No preview image-id was provided."),
   body("categoryId").exists().withMessage("No category-id was provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateUploadImage = (
@@ -63,28 +61,28 @@ export const validateUploadImage = (
 
 export const validateDeleteImage = [
   body("imageId").exists().withMessage("No image-id was provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateAddScrollingImage = [
   body("scrollingImageId")
     .exists()
     .withMessage("Please provide the id of image to add as a scrolling image."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateDeleteScrollingImage = [
   body("scrollingImageId")
     .exists()
     .withMessage("Please provide the id of the scrolling image to delete."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateReplaceScrollingImages = [
   body("newScrollingImageIds")
     .exists()
     .withMessage("The ids of the new scrolling images were not provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateCreateBlogPost = [
@@ -92,12 +90,29 @@ export const validateCreateBlogPost = [
   body("content")
     .exists()
     .withMessage("The content of the post was not provided."),
-  _handleValidationResult,
+  handleValidationResult,
 ];
 
 export const validateDeleteBlogPost = [
   body("postId")
     .exists()
     .withMessage("The id of the blog post to delete was not provided."),
-  _handleValidationResult,
+  handleValidationResult,
+];
+
+export const validateRegisterUser = [
+  body("name").exists().withMessage("No name was provided."),
+  body("password").exists().withMessage("No password was provided."),
+  body("email")
+    .exists()
+    .withMessage("No email was provided.")
+    .isEmail()
+    .withMessage("The provided email was invalid."),
+  handleValidationResult,
+];
+
+export const validateSignIn = [
+  body("email").exists().withMessage("No email was provided."),
+  body("password").exists().withMessage("No password was provided."),
+  handleValidationResult,
 ];

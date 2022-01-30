@@ -23,3 +23,9 @@ export const FILE_SYSTEM_ERROR = "file system error";
  * Indicates that the requested service could not be fulfilled due to an invalid argument.
  */
 export const INVALID_ARGUMENT = "invalid argument";
+
+/**
+ * Indicates that the requested service could not be fulfilled since the client request
+ *  lacks valid authentication.
+ */
+export const UNAUTHORIZED = "unauthorized";
