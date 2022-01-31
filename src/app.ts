@@ -31,6 +31,5 @@ app.use("/auth", authRoutes);
 
 app.use(handle404);
 
-mongoose.connect(process.env.DB_URI ? process.env.DB_URI : "8080").then(() => {
-  app.listen(process.env.PORT ? process.env.PORT : 8080);
-});
+export default app;
+
