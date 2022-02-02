@@ -1,5 +1,4 @@
 import { RESOURCE_ALREADY_EXISTS, RESOURCE_NOT_FOUND, UNAUTHORIZED } from "..";
-import { UserDocument } from "../../models/user";
 import * as db from "../../tests/mockDB";
 import { registerUser, signIn, verifyAccessToken } from "../user.service";
 beforeAll(async () => await db.connect());
@@ -105,5 +104,37 @@ describe("signIn", () => {
     expect(user.email).toBe(verifiedUser.email);
     expect(success).toBe(true);
     expect(message).toBeUndefined();
+  });
+});
+
+describe("verifyAccessToken", () => {
+  const name = "name";
+  const password = "password";
+  const email = "email";
+  const secret = "super secret secret";
+
+  it("does not verify an invalid access token", async () => {
+    const { accessToken } = await registerUser(name, email, password, secret);
+    if (!accessToken) throw new Error();
+
+    const invalidToken = accessToken.slice(0, accessToken.length - 5) + "hello";
+
+    const invalidResult = await verifyAccessToken(invalidToken, secret);
+
+    expect(invalidResult.success).toBe(false);
+    expect(invalidResult.message).toBe(UNAUTHORIZED);
+    expect(invalidResult.user).toBeUndefined();
+  });
+
+  it("Returns the correct user object if the access token is valid", async () => {
+    const { accessToken } = await registerUser(name, email, password, secret);
+    if (!accessToken) throw new Error();
+
+    const { user } = await verifyAccessToken(accessToken, secret);
+
+    if (!user) throw new Error();
+
+    expect(user.name).toBe(name);
+    expect(user.email).toBe(email);
   });
 });

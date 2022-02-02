@@ -4,7 +4,7 @@
   "description": "Backend for Ann-Marie Genne Foto",
   "main": "dist/app.js",
   "scripts": {
-    "start": "tsc-watch --onSuccess \"node ./dist/app.js\"",
+    "start": "tsc-watch --onSuccess \"node ./dist/server.js\"",
     "test": "jest"
   },
   "author": "Simon Genne",
@@ -21,6 +21,7 @@
     "@types/multer": "^1.4.7",
     "@types/node": "^17.0.0",
     "@types/sharp": "^0.29.4",
+    "@types/supertest": "^2.0.11",
     "jest": "^27.4.7",
     "mongodb-memory-server": "^8.2.0",
     "supertest": "^6.2.2",
@@ -49,6 +50,8 @@
     "transformIgnorePatterns": [
       "node_modules/(?!variables/.*)"
     ],
-    "modulePathIgnorePatterns": ["./dist"]
+    "modulePathIgnorePatterns": [
+      "./dist"
+    ]
   }
 }

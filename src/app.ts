@@ -3,7 +3,6 @@ import dotenv from "dotenv";
 import path from "path";
 
 import express from "express";
-import mongoose from "mongoose";
 import cors from "cors";
 
 import { authenticateUser } from "./middleware/auth";
