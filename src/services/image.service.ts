@@ -1,6 +1,4 @@
-import path from "path";
 import sharp from "sharp";
-import fs from "fs";
 
 import { IImageDocument, Image } from "../models/image";
 import { IImage } from "../interfaces/image.interface";
@@ -10,10 +8,16 @@ import {
   RESOURCE_ALREADY_EXISTS,
   RESOURCE_NOT_FOUND,
 } from ".";
+import { StorageHandler } from "../utils/storage.util";
 
-const ROOT_FOLDER_PATH = path.join(__dirname, "../../");
-const GALLERY_IMAGE_FOLDER_PATH = path.join("images", "gallery");
-const COMPRESSED_IMAGE_FOLDER_PATH = path.join("images", "compressed");
+const keyFileName: string | undefined = process.env.GOOGLE_CLOUD_KEY_FILENAME;
+const bucketName: string | undefined = process.env.GOOGLE_CLOUD_BUCKET;
+
+if (!(keyFileName && bucketName)) {
+  throw new Error("Invalid google cloud credentials.");
+}
+
+const storage = new StorageHandler(keyFileName, bucketName);
 
 // Fetches images from db with the given search query, if one is provided.
 const fetchImages = async (searchQuery = {}) => {
@@ -26,14 +30,6 @@ const fetchImages = async (searchQuery = {}) => {
   }
 
   return { success: true, images: images };
-};
-
-// Removes the given image from the file system.
-const unlink = (image: IImage) => {
-  return Promise.all([
-    fs.promises.unlink(path.join(image.relativeImagePath)),
-    fs.promises.unlink(path.join(image.relativeCompressedImagePath)),
-  ]);
 };
 
 /**
@@ -117,19 +113,9 @@ interface imageFile {
  */
 export const storeImage = async (image: imageFile, category: string) => {
   const originalName = image.originalname;
-  const compressedImageName = "(compressed)" + originalName;
-  const compressedImagePath = path.join(
-    ROOT_FOLDER_PATH,
-    COMPRESSED_IMAGE_FOLDER_PATH,
-    compressedImageName
-  );
-  const imagePath = path.join(
-    ROOT_FOLDER_PATH,
-    GALLERY_IMAGE_FOLDER_PATH,
-    originalName
-  );
+  let imageUrl: string;
+  let compressedImageUrl: string;
 
-  // Check if an image with the given filename already exists
   try {
     const existingImage = await Image.findOne({ filename: originalName });
     if (existingImage) {
@@ -139,27 +125,36 @@ export const storeImage = async (image: imageFile, category: string) => {
     return { success: false, message: DATABASE_ERROR };
   }
 
-  // Store compressed and non-compressed versions of the image in file system.
   try {
-    await sharp(image.buffer)
+    const compressedImageBuffer = await sharp(image.buffer)
       .resize(600, 600)
       .toFormat("jpg")
-      .toFile(compressedImagePath);
+      .toBuffer();
 
-    fs.writeFileSync(imagePath, image.buffer);
-  } catch (err) {
+    const compressedImage: imageFile = {
+      originalname: image.originalname,
+      buffer: compressedImageBuffer,
+    };
+
+    const [imageResult, compressedImageresult] = await Promise.all([
+      storage.storeImage(image),
+      storage.storeCompressedImage(compressedImage),
+    ]);
+
+    if (!(imageResult.url && compressedImageresult.url)) {
+      return { success: false, message: FILE_SYSTEM_ERROR };
+    }
+
+    imageUrl = imageResult.url;
+    compressedImageUrl = compressedImageresult.url;
+  } catch (error) {
     return { success: false, message: FILE_SYSTEM_ERROR };
   }
 
-  const relativeImagePath = `${GALLERY_IMAGE_FOLDER_PATH}/${originalName}`;
-  const relativeCompressedImagePath = `${COMPRESSED_IMAGE_FOLDER_PATH}/${compressedImageName}`;
-
   const storedImage: IImageDocument = new Image({
     filename: originalName,
-    imageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeImagePath}`,
-    compressedImageUrl: `http://${process.env.HOST_NAME}:${process.env.PORT}/${relativeCompressedImagePath}`,
-    relativeImagePath: relativeImagePath,
-    relativeCompressedImagePath: relativeCompressedImagePath,
+    imageUrl: imageUrl,
+    compressedImageUrl: compressedImageUrl,
     category: category.toLowerCase(),
   });
 
@@ -167,7 +162,6 @@ export const storeImage = async (image: imageFile, category: string) => {
     await storedImage.save();
   } catch (err) {
     console.trace(err);
-    await unlink(storedImage);
     return { success: false, message: DATABASE_ERROR };
   }
 
@@ -184,31 +178,26 @@ export const storeImage = async (image: imageFile, category: string) => {
  * @returns {success: false, message} if the image could not be deleted successfully.
  */
 export const deleteImage = async (imageId: string) => {
-  let image: IImageDocument | null;
-
-  try {
-    image = await Image.findById(imageId);
-  } catch (err) {
-    return { success: false, message: DATABASE_ERROR };
-  }
-
-  if (!image) {
-    return { success: false, message: RESOURCE_NOT_FOUND };
-  }
-
-  try {
-    await unlink(image);
-  } catch (err) {
-    return { success: false, message: FILE_SYSTEM_ERROR };
-  }
-
-  try {
-    await image.delete();
-  } catch (err) {
-    return { success: false, message: DATABASE_ERROR };
-  }
-
-  return { success: true, image: image };
+  // let image: IImageDocument | null;
+  // try {
+  //   image = await Image.findById(imageId);
+  // } catch (err) {
+  //   return { success: false, message: DATABASE_ERROR };
+  // }
+  // if (!image) {
+  //   return { success: false, message: RESOURCE_NOT_FOUND };
+  // }
+  // try {
+  //   await unlink(image);
+  // } catch (err) {
+  //   return { success: false, message: FILE_SYSTEM_ERROR };
+  // }
+  // try {
+  //   await image.delete();
+  // } catch (err) {
+  //   return { success: false, message: DATABASE_ERROR };
+  // }
+  // return { success: true, image: image };
 };
 
 /**
@@ -217,29 +206,24 @@ export const deleteImage = async (imageId: string) => {
  * @param category The category within wich all images will be deleted.
  */
 export const deleteImagesByCategory = async (category: string) => {
-  let imagesToDelete: IImageDocument[];
-
-  try {
-    imagesToDelete = await Image.find({ category: category.toLowerCase() });
-  } catch (error) {
-    return { success: false, message: DATABASE_ERROR };
-  }
-
-  const results = await Promise.all(
-    imagesToDelete.map((image) => deleteImage(image._id))
-  );
-
-  const failedRequest: { success: boolean; message?: string } | undefined =
-    results.find((res) => !res.success);
-
-  if (failedRequest) {
-    return {
-      success: false,
-      message: failedRequest.message,
-    };
-  }
-
-  return {
-    success: true,
-  };
+  // let imagesToDelete: IImageDocument[];
+  // try {
+  //   imagesToDelete = await Image.find({ category: category.toLowerCase() });
+  // } catch (error) {
+  //   return { success: false, message: DATABASE_ERROR };
+  // }
+  // const results = await Promise.all(
+  //   imagesToDelete.map((image) => deleteImage(image._id))
+  // );
+  // const failedRequest: { success: boolean; message?: string } | undefined =
+  //   results.find((res) => !res.success);
+  // if (failedRequest) {
+  //   return {
+  //     success: false,
+  //     message: failedRequest.message,
+  //   };
+  // }
+  // return {
+  //   success: true,
+  // };
 };

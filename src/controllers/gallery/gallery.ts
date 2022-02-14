@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 
-import { ImageCategory } from "../../models/imageCategory";
 import { ScrollingImage } from "../../models/scrollingImage";
 import * as imageServices from "../../services/image.service";
 import * as imageCategoryServices from "../../services/imageCategory.service";
@@ -40,7 +39,13 @@ export const getImagesByCategory = async (req: Request, res: Response) => {
 
   const categories = categoryResult.categories;
 
-  if (!categories.map((cat) => cat.title).includes(category)) {
+  console.log(categories);
+
+  if (
+    !categories
+      .map((cat) => cat.title.toLowerCase())
+      .includes(category.toLowerCase())
+  ) {
     return res.status(404).json({ message: "No such category exists." });
   }
 
@@ -81,12 +86,10 @@ export const getCategories = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Could not fetch categories." });
   }
 
-  res
-    .status(200)
-    .json({
-      message: "The categories were fetched successfully.",
-      categories: result.categories,
-    });
+  res.status(200).json({
+    message: "The categories were fetched successfully.",
+    categories: result.categories,
+  });
 };
 
 export const getScrollingImages = async (req: Request, res: Response) => {

@@ -28,4 +28,6 @@ credentials.js
 /dist
 nodemon.json
 
+cloud-storage.json
+
 .vscode
