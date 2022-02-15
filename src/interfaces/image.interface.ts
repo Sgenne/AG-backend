@@ -3,6 +3,4 @@ export interface IImage {
   imageUrl: string;
   compressedImageUrl: string;
   category: string;
-  relativeImagePath: string;
-  relativeCompressedImagePath: string;
 }

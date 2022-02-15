@@ -14,7 +14,7 @@ import authRoutes from "./routes/auth";
 
 import { handle404 } from "./middleware/handleErrors";
 
-dotenv.config();
+dotenv.config({path: path.join(__dirname, "../", ".env")});
 
 const app = express();
 app.use(cors());

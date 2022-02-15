@@ -1,15 +1,11 @@
-interface Result {
-  success: boolean;
-  message?: string;
-  url?: string;
-}
-
 interface ImageFile {
   originalname: string;
   buffer: Buffer;
 }
 
 import { Bucket, Storage } from "@google-cloud/storage";
+import { IImage } from "../interfaces/image.interface";
+import { Result } from "../interfaces/result.interface";
 
 export class StorageHandler {
   private bucket: Bucket;
@@ -27,8 +23,8 @@ export class StorageHandler {
    * @returns A promise of an object containing the result of the operation.
    */
   storeImage = async (image: ImageFile): Promise<Result> => {
-    const imagePath = `/images/${image.originalname}`;
-    return await this.store(image.buffer, imagePath);
+    const path = imagePath(image.originalname);
+    return await this.store(image.buffer, path);
   };
 
   /**
@@ -40,14 +36,13 @@ export class StorageHandler {
    * @returns A promise of an object containing the result of the operation.
    */
   storeCompressedImage = async (image: ImageFile): Promise<Result> => {
-    const imagePath = `/compressed/comp_${image.originalname}`;
-    return await this.store(image.buffer, imagePath);
+    const path = compressedImagePath(image.originalname);
+    return await this.store(image.buffer, path);
   };
 
-  private store = (file: Buffer, path: string) =>
+  private store = (file: Buffer, path: string): Promise<Result> =>
     new Promise<Result>((resolve, reject) => {
       const storedObject = this.bucket.file(path);
-      const fileUrl = `gs://${this.bucket.name}${path}`;
 
       storedObject
         .createWriteStream()
@@ -55,8 +50,33 @@ export class StorageHandler {
           reject(error);
         })
         .on("finish", () => {
-          resolve({ success: true, url: fileUrl });
+          resolve({
+            success: true,
+            payload: { url: storedObject.publicUrl() },
+          });
         })
         .end(file);
     });
+
+  deleteImage = (image: IImage): Promise<Result> =>
+    this.delete(imagePath(image.filename));
+
+  deleteCompressedImage = async (image: IImage): Promise<Result> =>
+    this.delete(compressedImagePath(image.filename));
+
+  private delete = async (path: string): Promise<Result> => {
+    try {
+      const response = await this.bucket.file(path).delete();
+
+      console.log("response: ", response);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Delete failed.";
+      return { success: false, message: message };
+    }
+    return { success: true };
+  };
 }
+
+const imagePath = (originalname: string) => `gallery/images/${originalname}`;
+const compressedImagePath = (originalname: string) =>
+  `gallery/compressed/comp_${originalname}`;

@@ -22,16 +22,6 @@ const imageSchema = new Schema(
       required: true,
       unique: true,
     },
-    relativeImagePath: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    relativeCompressedImagePath: {
-      type: String,
-      required: true,
-      unique: true,
-    },
     category: {
       type: String,
       required: true,

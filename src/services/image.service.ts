@@ -9,15 +9,7 @@ import {
   RESOURCE_NOT_FOUND,
 } from ".";
 import { StorageHandler } from "../utils/storage.util";
-
-const keyFileName: string | undefined = process.env.GOOGLE_CLOUD_KEY_FILENAME;
-const bucketName: string | undefined = process.env.GOOGLE_CLOUD_BUCKET;
-
-if (!(keyFileName && bucketName)) {
-  throw new Error("Invalid google cloud credentials.");
-}
-
-const storage = new StorageHandler(keyFileName, bucketName);
+import { Result } from "../interfaces/result.interface";
 
 // Fetches images from db with the given search query, if one is provided.
 const fetchImages = async (searchQuery = {}) => {
@@ -125,6 +117,8 @@ export const storeImage = async (image: imageFile, category: string) => {
     return { success: false, message: DATABASE_ERROR };
   }
 
+  const storage = createStorageHandler();
+
   try {
     const compressedImageBuffer = await sharp(image.buffer)
       .resize(600, 600)
@@ -141,12 +135,12 @@ export const storeImage = async (image: imageFile, category: string) => {
       storage.storeCompressedImage(compressedImage),
     ]);
 
-    if (!(imageResult.url && compressedImageresult.url)) {
+    imageUrl = imageResult.payload.url;
+    compressedImageUrl = compressedImageresult.payload.url;
+
+    if (!(imageUrl && compressedImageUrl)) {
       return { success: false, message: FILE_SYSTEM_ERROR };
     }
-
-    imageUrl = imageResult.url;
-    compressedImageUrl = compressedImageresult.url;
   } catch (error) {
     return { success: false, message: FILE_SYSTEM_ERROR };
   }
@@ -178,26 +172,38 @@ export const storeImage = async (image: imageFile, category: string) => {
  * @returns {success: false, message} if the image could not be deleted successfully.
  */
 export const deleteImage = async (imageId: string) => {
-  // let image: IImageDocument | null;
-  // try {
-  //   image = await Image.findById(imageId);
-  // } catch (err) {
-  //   return { success: false, message: DATABASE_ERROR };
-  // }
-  // if (!image) {
-  //   return { success: false, message: RESOURCE_NOT_FOUND };
-  // }
-  // try {
-  //   await unlink(image);
-  // } catch (err) {
-  //   return { success: false, message: FILE_SYSTEM_ERROR };
-  // }
-  // try {
-  //   await image.delete();
-  // } catch (err) {
-  //   return { success: false, message: DATABASE_ERROR };
-  // }
-  // return { success: true, image: image };
+  let image: IImageDocument | null;
+
+  console.log("here")
+
+  const storage: StorageHandler = createStorageHandler();
+
+  try {
+    image = await Image.findById(imageId);
+  } catch (err) {
+    return { success: false, message: DATABASE_ERROR };
+  }
+
+  if (!image) {
+    return { success: false, message: RESOURCE_NOT_FOUND };
+  }
+
+  try {
+    await Promise.all([
+      storage.deleteImage(image),
+      storage.deleteCompressedImage(image),
+    ]);
+  } catch (err) {
+    return { success: false, message: FILE_SYSTEM_ERROR };
+  }
+
+  try {
+    await image.delete();
+  } catch (err) {
+    return { success: false, message: DATABASE_ERROR };
+  }
+
+  return { success: true, image: image };
 };
 
 /**
@@ -206,24 +212,58 @@ export const deleteImage = async (imageId: string) => {
  * @param category The category within wich all images will be deleted.
  */
 export const deleteImagesByCategory = async (category: string) => {
-  // let imagesToDelete: IImageDocument[];
-  // try {
-  //   imagesToDelete = await Image.find({ category: category.toLowerCase() });
-  // } catch (error) {
-  //   return { success: false, message: DATABASE_ERROR };
-  // }
-  // const results = await Promise.all(
-  //   imagesToDelete.map((image) => deleteImage(image._id))
-  // );
-  // const failedRequest: { success: boolean; message?: string } | undefined =
-  //   results.find((res) => !res.success);
-  // if (failedRequest) {
-  //   return {
-  //     success: false,
-  //     message: failedRequest.message,
-  //   };
-  // }
-  // return {
-  //   success: true,
-  // };
+  let imagesToDelete: IImageDocument[];
+
+  const storage = createStorageHandler();
+
+  try {
+    imagesToDelete = await Image.find({ category: category.toLowerCase() });
+  } catch (error) {
+    return { success: false, message: DATABASE_ERROR };
+  }
+
+  const results = await Promise.all(
+    imagesToDelete.map((image) =>
+      Promise.all([
+        storage.deleteImage(image),
+        storage.deleteCompressedImage(image),
+      ])
+    )
+  );
+
+  let failedRequestResult: Result | undefined;
+
+  results.forEach((res) => {
+    if (!res[0].success) {
+      failedRequestResult = res[0];
+      return;
+    }
+    if (!res[1].success) {
+      failedRequestResult = res[1];
+    }
+  });
+
+  if (failedRequestResult) {
+    return {
+      success: false,
+      message: failedRequestResult.message,
+    };
+  }
+
+  return {
+    success: true,
+  };
+};
+
+const createStorageHandler = (): StorageHandler => {
+  const keyFileName: string | undefined = process.env.GOOGLE_CLOUD_KEY_FILENAME;
+  const bucketName: string | undefined = process.env.GOOGLE_CLOUD_BUCKET_NAME;
+
+  if (!(keyFileName && bucketName)) {
+    throw new Error(
+      `Invalid google cloud credentials: ${keyFileName} - ${bucketName}`
+    );
+  }
+
+  return new StorageHandler(keyFileName, bucketName);
 };
